@@ -76,7 +76,7 @@ function App() {
       <footer className="bg-gray-950 border-t border-gray-800 py-4 px-8 text-center text-xs text-gray-600">
         <p>
           Hazama v0.1.0-beta | Built with Vite + React + TypeScript + Tailwind CSS |
-          <a href="https://github.com/yourusername/Hazama" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-400 ml-2">GitHub</a>
+          <a href="https://github.com/Skyarrow416/Hazama" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-400 ml-2">GitHub</a>
         </p>
       </footer>
     </div>

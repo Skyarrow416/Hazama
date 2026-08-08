@@ -1,8 +1,8 @@
 # Hazama
 
-[![Version](https://img.shields.io/badge/version-0.1.0--beta-blue.svg)](https://github.com/yourusername/Hazama)
+[![Version](https://img.shields.io/badge/version-0.1.0--beta-blue.svg)](https://github.com/Skyarrow416/Hazama)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Deploy](https://img.shields.io/badge/deploy-GitHub%20Pages-brightgreen.svg)](https://yourusername.github.io/Hazama/)
+[![Deploy](https://img.shields.io/badge/deploy-GitHub%20Pages-brightgreen.svg)](https://Skyarrow416.github.io/Hazama/)
 
 **Hazama - Internal Network Penetration Command Generator**
 
@@ -10,7 +10,7 @@
 
 用户只需填写一份共享的凭据配置（域名、用户名、密码/哈希/Kerberos票据等），所有命令将**实时生成**，支持一键复制。
 
-🌐 **在线体验**: [https://yourusername.github.io/Hazama/](https://yourusername.github.io/Hazama/)
+🌐 **在线体验**: [https://Skyarrow416.github.io/Hazama/](https://Skyarrow416.github.io/Hazama/)
 
 ---
 
@@ -91,7 +91,7 @@
 ## 🚀 快速开始 | Quick Start
 
 ### 在线使用（推荐）
-直接访问：[https://yourusername.github.io/Hazama/](https://yourusername.github.io/Hazama/)
+直接访问：[https://Skyarrow416.github.io/Hazama/](https://Skyarrow416.github.io/Hazama/)
 
 ### 本地运行
 
@@ -102,7 +102,7 @@
 
 ```bash
 # 克隆仓库
-git clone https://github.com/yourusername/Hazama.git
+git clone https://github.com/Skyarrow416/Hazama.git
 cd Hazama
 
 # 安装依赖
@@ -256,7 +256,7 @@ MIT License - 详见 [LICENSE](LICENSE)
 ## 📬 反馈 | Feedback
 
 如有问题或建议，欢迎：
-- 提交 [Issue](https://github.com/yourusername/Hazama/issues)
+- 提交 [Issue](https://github.com/Skyarrow416/Hazama/issues)
 - 发送 Pull Request
 - 联系作者
 
