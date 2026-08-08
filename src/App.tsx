@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import ProfileBar from './components/ProfileBar';
+import QuickActions from './components/QuickActions';
 import CategorySidebar from './components/CategorySidebar';
 import ToolCard from './components/ToolCard';
 import { categories, allTools } from './data/tools';
@@ -36,6 +37,9 @@ function App() {
 
       {/* Profile Bar */}
       <ProfileBar />
+
+      {/* Quick Actions */}
+      <QuickActions onSelectTool={setSelectedToolId} />
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
