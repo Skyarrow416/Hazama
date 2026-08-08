@@ -13,7 +13,7 @@ export default function ProfileBar() {
   ];
 
   return (
-    <div className="sticky top-0 z-10 bg-gray-900 border-b border-gray-800 shadow-lg">
+    <div className="bg-gray-900 border-b border-gray-800 shadow-lg">
       <div className="p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
