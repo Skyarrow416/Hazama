@@ -1,7 +1,7 @@
 {
   "name": "hazama",
   "private": true,
-  "version": "0.1.0-beta",
+  "version": "0.2.0-beta",
   "description": "Hazama - Internal Network Penetration Command Generator",
   "type": "module",
   "scripts": {

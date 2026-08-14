@@ -1,6 +1,6 @@
 # Hazama
 
-[![Version](https://img.shields.io/badge/version-0.1.0--beta-blue.svg)](https://github.com/Skyarrow416/Hazama)
+[![Version](https://img.shields.io/badge/version-0.2.0--beta-blue.svg)](https://github.com/Skyarrow416/Hazama)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Deploy](https://img.shields.io/badge/deploy-GitHub%20Pages-brightgreen.svg)](https://Skyarrow416.github.io/Hazama/)
 
@@ -36,11 +36,13 @@
 
 ---
 
-## 🎯 当前版本: v0.1.0-beta
+## 🎯 当前版本: v0.2.0-beta
 
 ### 已实现功能
-- ✅ 4 大工具分类（Impacket, Certipy, NetExec, Kerberos/BloodHound）
-- ✅ 30+ 工具，115+ 条预定义命令
+- ✅ 5 大工具分类（Impacket, Certipy, NetExec, Kerberos/BloodHound, 文件传输）
+- ✅ 35+ 工具，140+ 条预定义命令
+- ✅ Impacket 命令采用 Kali 标准 `impacket-<name>` 命名，参数与官方 argparse 定义逐一核对
+- ✅ 文件传输模块：HTTP/SMB/FTP/BITS/certutil/PowerShell 六类通道，CMD 与 PowerShell 双格式
 - ✅ 4 种认证方式自动切换
 - ✅ 实时命令生成与占位符高亮
 - ✅ localStorage 持久化
@@ -57,13 +59,13 @@
 
 ## 🛠️ 支持的工具 | Supported Tools
 
-### 1. **Impacket** (15 个工具, 44 条命令)
-- `secretsdump` - SAM/LSA/NTDS 导出、DCSync
-- `psexec` / `wmiexec` / `smbexec` / `atexec` / `dcomexec` - 远程命令执行
-- `GetUserSPNs` - Kerberoasting
-- `GetNPUsers` - AS-REP Roasting
-- `getTGT` / `ticketer` - Kerberos 票据操作（黄金/白银票据）
-- `mssqlclient` / `lookupsid` / `GetADUsers` / `findDelegation` / `rpcdump`
+### 1. **Impacket** (17 个工具, 55+ 条命令)
+- `impacket-secretsdump` - SAM/LSA/NTDS 导出、DCSync
+- `impacket-psexec` / `impacket-wmiexec` / `impacket-smbexec` / `impacket-atexec` / `impacket-dcomexec` - 远程命令执行
+- `impacket-GetUserSPNs` - Kerberoasting
+- `impacket-GetNPUsers` - AS-REP Roasting
+- `impacket-getTGT` / `impacket-ticketer` - Kerberos 票据操作（黄金/白银票据）
+- `impacket-mssqlclient` / `impacket-smbclient` / `impacket-lookupsid` / `impacket-GetADUsers` / `impacket-findDelegation` / `impacket-rpcdump`
 
 ### 2. **Certipy (ADCS)** (7 个工具, 19 条命令)
 - `find` - 查找漏洞证书模板（ESC1-8）
@@ -85,6 +87,14 @@
 - `ldapsearch` - LDAP 查询（用户、组、SPN）
 - `Rubeus` - Kerberoasting、AS-REP Roasting、Pass-the-Ticket
 - **完整攻击流程** - Kerberoasting / AS-REP Roasting / Pass-the-Ticket 全流程命令串联
+
+### 5. **文件传输 File Transfer** (6 个工具, 20+ 条命令)
+- **攻击机托管** - `python3 -m http.server` / `impacket-smbserver` / `uploadserver`
+- **HTTP (PowerShell)** - WebClient / Invoke-WebRequest 下载、无落地 IEX 执行、HTTP 上传
+- **HTTP (CMD)** - `certutil -urlcache` / `bitsadmin` / `Start-BitsTransfer` / certutil Base64 编码
+- **SMB 共享** - `copy` / `xcopy` / `Copy-Item` 双向传输
+- **FTP** - `ftp -s` 脚本与 PowerShell WebClient 双向传输
+- **执行器自带传输** - `impacket-psexec -c` 上传执行 / `impacket-smbclient` put
 
 ---
 

@@ -27,6 +27,9 @@ const defaultProfile: Profile = {
   certTemplate: '',
   caName: '',
   bloodhoundZip: '',
+  domainSid: '',
+  fileName: '',
+  remotePath: '',
   authMode: 'password',
 };
 
