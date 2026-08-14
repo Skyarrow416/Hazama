@@ -32,6 +32,11 @@ export interface Profile {
   certTemplate: string;
   caName: string;
   bloodhoundZip: string;
+  domainSid: string;
+
+  // File transfer
+  fileName: string;
+  remotePath: string;
 
   // Auth mode selector
   authMode: AuthMode;

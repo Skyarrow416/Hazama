@@ -34,6 +34,11 @@ export const fieldDefinitions: FieldDefinition[] = [
   { key: 'certTemplate', label: '证书模板', placeholder: 'User', group: 'advanced' },
   { key: 'caName', label: 'CA Name', placeholder: 'CORP-DC-CA', group: 'advanced' },
   { key: 'bloodhoundZip', label: 'BloodHound Zip', placeholder: '20240808_bloodhound.zip', group: 'advanced' },
+  { key: 'domainSid', label: 'Domain SID', placeholder: 'S-1-5-21-...', group: 'advanced' },
+
+  // File transfer group
+  { key: 'fileName', label: '文件名 File', placeholder: 'mimikatz.exe', group: 'local' },
+  { key: 'remotePath', label: '远程落地路径', placeholder: 'C:\\Windows\\Temp\\mimikatz.exe', group: 'local' },
 ];
 
 export const fieldGroups = [

@@ -270,6 +270,40 @@ export default function ProfileBar() {
                   className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
                 />
               </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Domain SID</label>
+                <input
+                  type="text"
+                  placeholder="S-1-5-21-..."
+                  value={profile.domainSid}
+                  onChange={(e) => updateProfile({ domainSid: e.target.value })}
+                  className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Row 4: File transfer */}
+            <div className="grid grid-cols-4 gap-3">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">文件名 (File)</label>
+                <input
+                  type="text"
+                  placeholder="mimikatz.exe"
+                  value={profile.fileName}
+                  onChange={(e) => updateProfile({ fileName: e.target.value })}
+                  className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">远程落地路径</label>
+                <input
+                  type="text"
+                  placeholder="C:\Windows\Temp\mimikatz.exe"
+                  value={profile.remotePath}
+                  onChange={(e) => updateProfile({ remotePath: e.target.value })}
+                  className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                />
+              </div>
             </div>
           </div>
         )}

@@ -56,6 +56,53 @@ export function buildImpacketAuth(p: Profile): string {
 }
 
 /**
+ * Build Impacket domain-style target string: DOMAIN[/USER[:PASS]]
+ * Used by LDAP/Kerberos query tools whose target is a domain identity,
+ * NOT a host: GetUserSPNs, GetNPUsers, GetADUsers, findDelegation, getTGT.
+ * (Verified against argparse 'target'/'identity' definitions in impacket examples)
+ */
+export function buildImpacketDomainAuth(p: Profile): string {
+  const domain = v(p.domain, 'DOMAIN');
+  const user = v(p.username, 'USER');
+
+  let target = '';
+  let authFlags = '';
+
+  switch (p.authMode) {
+    case 'password': {
+      const pass = v(p.password, 'PASSWORD');
+      target = `${domain}/${user}:${pass}`;
+      break;
+    }
+    case 'hash': {
+      const lm = p.lmHash?.trim() || EMPTY_LM_HASH;
+      const nt = v(p.ntHash, 'NTHASH');
+      target = `${domain}/${user}`;
+      authFlags = `-hashes ${lm}:${nt}`;
+      break;
+    }
+    case 'kerberos': {
+      target = `${domain}/${user}`;
+      authFlags = `-k -no-pass`;
+      break;
+    }
+    case 'aeskey': {
+      const aes = v(p.aesKey, 'AESKEY');
+      target = `${domain}/${user}`;
+      authFlags = `-aesKey ${aes} -k`;
+      break;
+    }
+  }
+
+  // Add DC IP if present
+  if (p.dcIP?.trim()) {
+    authFlags += ` -dc-ip ${p.dcIP}`;
+  }
+
+  return `${target}${authFlags ? ' ' + authFlags : ''}`;
+}
+
+/**
  * Build NetExec (nxc) auth string
  * nxc <protocol> <target> -u USER -d DOMAIN (-p PASS | -H HASH | -k)
  */
