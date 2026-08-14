@@ -278,7 +278,7 @@ export const impacketTools: Tool[] = [
     ],
   },
   {
-    id: 'smbclient',
+    id: 'impacket-smbclient',
     name: 'impacket-smbclient',
     category: 'impacket',
     homepage: 'https://github.com/fortra/impacket/blob/master/examples/smbclient.py',
