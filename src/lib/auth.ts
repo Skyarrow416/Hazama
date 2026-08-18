@@ -10,13 +10,39 @@ export function v(value: string | undefined, placeholder: string): string {
 }
 
 /**
- * Build Impacket-style target string: DOMAIN/USER[:PASS]@HOST
- * Plus auth flags based on profile.authMode
+ * impacket 各 example 脚本的 argparse 能力差异很大，不能一刀切:
+ * - lookupsid/rpcdump 没有 -dc-ip
+ * - rpcdump 没有任何 Kerberos 参数 (-k/-no-pass/-aesKey)
+ * - lookupsid 没有 -aesKey
+ * - 只有部分工具有 -target-ip (atexec/dcomexec/域查询类工具都没有)
+ * 以下默认值与 impacket 官方 examples 的 argparse 定义一致，
+ * 不支持某项的工具在调用处显式关闭。
  */
-export function buildImpacketAuth(p: Profile): string {
+export interface ImpacketCaps {
+  /** 支持 -dc-ip (默认 true；lookupsid/rpcdump 为 false) */
+  dcIp?: boolean;
+  /** 支持 Kerberos 认证 -k/-no-pass (默认 true；rpcdump 为 false) */
+  kerberos?: boolean;
+  /** 支持 -aesKey (默认 true；lookupsid 为 false) */
+  aesKey?: boolean;
+  /** 支持 -target-ip (默认 false；secretsdump/psexec/wmiexec/smbexec/mssqlclient/smbclient/lookupsid/rpcdump 为 true) */
+  targetIp?: boolean;
+}
+
+/**
+ * Build Impacket-style target string: [[domain/]USER[:PASS]@]HOST
+ * plus auth flags per profile.authMode, constrained by the tool's argparse caps.
+ * Kerberos 认证时 SPN 按主机名匹配，因此 target 优先使用主机名而非 IP。
+ */
+export function buildImpacketAuth(p: Profile, caps: ImpacketCaps = {}): string {
+  const { dcIp = true, kerberos = true, aesKey = true, targetIp = false } = caps;
+
   const domain = v(p.domain, 'DOMAIN');
   const user = v(p.username, 'USER');
-  const host = v(p.targetIP || p.targetHost, 'TARGET');
+  const useKerberosTarget = p.authMode === 'kerberos' || p.authMode === 'aeskey';
+  const host = useKerberosTarget
+    ? v(p.targetHost || p.targetIP, 'TARGET')
+    : v(p.targetIP || p.targetHost, 'TARGET');
 
   let target = '';
   let authFlags = '';
@@ -36,19 +62,25 @@ export function buildImpacketAuth(p: Profile): string {
     }
     case 'kerberos': {
       target = `${domain}/${user}@${host}`;
-      authFlags = `-k -no-pass`;
+      if (kerberos) authFlags = `-k -no-pass`;
       break;
     }
     case 'aeskey': {
       const aes = v(p.aesKey, 'AESKEY');
       target = `${domain}/${user}@${host}`;
-      authFlags = `-aesKey ${aes} -k`;
+      if (aesKey) authFlags = `-aesKey ${aes} -k`;
+      else if (kerberos) authFlags = `-k -no-pass`;
       break;
     }
   }
 
-  // Add DC IP if present
-  if (p.dcIP?.trim()) {
+  // -target-ip: 主机名无法解析时指定目标 IP (仅部分工具支持)
+  if (targetIp && p.targetHost?.trim() && p.targetIP?.trim()) {
+    authFlags += ` -target-ip ${p.targetIP}`;
+  }
+
+  // -dc-ip: 指定域控 IP (域查询/Kerberos 场景常用)
+  if (dcIp && p.dcIP?.trim()) {
     authFlags += ` -dc-ip ${p.dcIP}`;
   }
 
