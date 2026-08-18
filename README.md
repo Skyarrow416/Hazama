@@ -59,7 +59,7 @@
 
 ## 🛠️ 支持的工具 | Supported Tools
 
-### 1. **Impacket** (17 个工具, 55+ 条命令)
+### 1. **Impacket** (16 个工具, 48 条命令)
 - `impacket-secretsdump` - SAM/LSA/NTDS 导出、DCSync
 - `impacket-psexec` / `impacket-wmiexec` / `impacket-smbexec` / `impacket-atexec` / `impacket-dcomexec` - 远程命令执行
 - `impacket-GetUserSPNs` - Kerberoasting
