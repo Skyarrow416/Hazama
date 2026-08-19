@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import ProfileBar from './components/ProfileBar';
-import QuickActions from './components/QuickActions';
 import CategorySidebar from './components/CategorySidebar';
 import ToolCard from './components/ToolCard';
 import { categories, allTools } from './data/tools';
@@ -15,34 +14,28 @@ function App() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="bg-gray-950 border-b border-gray-800 py-6 px-8">
-        <div className="flex items-center gap-3 mb-2">
-          <h1 className="text-3xl font-bold text-gray-100">
+      <header className="bg-gray-950 border-b border-gray-800 py-2.5 px-6 flex items-center gap-4">
+        <div className="flex items-center gap-2 shrink-0">
+          <h1 className="text-xl font-bold text-gray-100">
             Hazama
           </h1>
-          <span className="px-2 py-1 bg-blue-600 text-white text-xs font-semibold rounded">
+          <span className="px-1.5 py-0.5 bg-blue-600 text-white text-xs font-semibold rounded">
             BETA
           </span>
         </div>
-        <p className="text-base text-gray-300 mb-1">
-          Internal Network Penetration Command Generator
+        <p className="text-xs text-gray-400 truncate">
+          内网渗透命令生成器 - Impacket / bloodyAD / Certipy / NetExec / Kerberos / BloodHound
         </p>
-        <p className="text-sm text-gray-400">
-          内网渗透命令生成器 - Impacket / Certipy / NetExec / Kerberos / BloodHound
-        </p>
-        <p className="text-xs text-gray-500 mt-2">
-          ⚠️ 仅用于授权渗透测试、红队演练、CTF 竞赛与安全教学 | For authorized pentesting, red team, CTF & education only
+        <p className="text-xs text-gray-600 ml-auto shrink-0 hidden lg:block">
+          ⚠️ 仅用于授权渗透测试与安全教学
         </p>
       </header>
 
-      {/* Profile Bar */}
-      <ProfileBar />
-
-      {/* Quick Actions */}
-      <QuickActions onSelectTool={setSelectedToolId} />
+      {/* Profile Bar (含快捷操作) */}
+      <ProfileBar onSelectTool={setSelectedToolId} />
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex items-start">
         {/* Sidebar */}
         <CategorySidebar
           categories={categories}
@@ -50,8 +43,8 @@ function App() {
           onSelectTool={setSelectedToolId}
         />
 
-        {/* Main Area */}
-        <main className="flex-1 overflow-y-auto p-8 bg-gray-950">
+        {/* Main Area (随页面整体滚动) */}
+        <main className="flex-1 min-w-0 p-5 bg-gray-950">
           {selectedTool ? (
             <ToolCard tool={selectedTool} />
           ) : (
@@ -77,10 +70,10 @@ function App() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-gray-950 border-t border-gray-800 py-4 px-8 text-center text-xs text-gray-600">
+      <footer className="bg-gray-950 border-t border-gray-800 py-1 px-6 text-center text-xs text-gray-700">
         <p>
-          Hazama v0.1.0-beta | Built with Vite + React + TypeScript + Tailwind CSS |
-          <a href="https://github.com/Skyarrow416/Hazama" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-400 ml-2">GitHub</a>
+          Hazama v0.2.0-beta | Vite + React + TypeScript + Tailwind |
+          <a href="https://github.com/Skyarrow416/Hazama" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-400 ml-1">GitHub</a>
         </p>
       </footer>
     </div>

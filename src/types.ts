@@ -47,6 +47,10 @@ export interface Command {
   title: string;
   description?: string;
   build: (profile: Profile) => string;
+  /** 详细用法说明：逐参数解释，内容严格对照官方 argparse 定义 */
+  usage?: string;
+  /** 填好参数的实际样例命令（静态字符串，供参考对照） */
+  example?: string;
   note?: string;
   uses?: (keyof Profile)[];
 }
@@ -57,6 +61,8 @@ export interface Tool {
   category: string;
   homepage?: string;
   description: string;
+  /** 工具级指南：整体用法/背景知识（如 bloodyAD 的 ACL 简介），逐行渲染 */
+  guide?: string;
   commands: Command[];
 }
 

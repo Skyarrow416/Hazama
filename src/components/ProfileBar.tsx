@@ -2,7 +2,11 @@ import { useState } from 'react';
 import { useProfileStore } from '../store';
 import type { AuthMode } from '../types';
 
-export default function ProfileBar() {
+interface ProfileBarProps {
+  onSelectTool?: (toolId: string) => void;
+}
+
+export default function ProfileBar({ onSelectTool }: ProfileBarProps) {
   const { profile, updateProfile, resetProfile } = useProfileStore();
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -13,6 +17,19 @@ export default function ProfileBar() {
     { value: 'aeskey', label: 'AES Key' },
   ];
 
+  const quickActions = [
+    { id: 'pth', label: 'PTH 横向', toolId: 'psexec', authMode: 'hash' as AuthMode, description: '切换到哈希认证 + PSExec' },
+    { id: 'dcsync', label: 'DCSync', toolId: 'secretsdump', authMode: null, description: '域控同步导出哈希' },
+    { id: 'bh', label: 'BloodHound 采集', toolId: 'nxc-ldap', authMode: null, description: 'nxc ldap --bloodhound' },
+  ];
+
+  const handleQuickAction = (action: typeof quickActions[0]) => {
+    if (action.authMode) {
+      updateProfile({ authMode: action.authMode });
+    }
+    onSelectTool?.(action.toolId);
+  };
+
   // 根据认证模式决定显示密码还是哈希字段
   const showPasswordField = profile.authMode === 'password';
   const showHashField = profile.authMode === 'hash';
@@ -21,10 +38,22 @@ export default function ProfileBar() {
 
   return (
     <div className="bg-gray-900 border-b border-gray-800">
-      <div className="px-6 py-4">
+      <div className="px-5 py-2.5">
         {/* Header */}
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-gray-300">参数输入</h2>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <h2 className="text-xs font-semibold text-gray-400">参数输入</h2>
+            {quickActions.map((action) => (
+              <button
+                key={action.id}
+                onClick={() => handleQuickAction(action)}
+                className="px-2.5 py-0.5 bg-blue-600/80 hover:bg-blue-500 text-white text-xs font-medium rounded transition-colors"
+                title={action.description}
+              >
+                {action.label}
+              </button>
+            ))}
+          </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowAdvanced(!showAdvanced)}
@@ -42,7 +71,7 @@ export default function ProfileBar() {
         </div>
 
         {/* Core Fields - Row 1 */}
-        <div className="grid grid-cols-5 gap-3 mb-3">
+        <div className="grid grid-cols-5 gap-2 mb-2">
           <div>
             <label className="block text-xs text-gray-500 mb-1">域名 (Domain)</label>
             <input
@@ -50,7 +79,7 @@ export default function ProfileBar() {
               placeholder="例如: example.com"
               value={profile.domain}
               onChange={(e) => updateProfile({ domain: e.target.value })}
-              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+              className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
             />
           </div>
 
@@ -61,7 +90,7 @@ export default function ProfileBar() {
               placeholder="例如: administrator"
               value={profile.username}
               onChange={(e) => updateProfile({ username: e.target.value })}
-              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+              className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
             />
           </div>
 
@@ -73,7 +102,7 @@ export default function ProfileBar() {
                 placeholder="输入密码"
                 value={profile.password}
                 onChange={(e) => updateProfile({ password: e.target.value })}
-                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
               />
             </div>
           )}
@@ -86,7 +115,7 @@ export default function ProfileBar() {
                 placeholder="例如: aabbccdd..."
                 value={profile.ntHash}
                 onChange={(e) => updateProfile({ ntHash: e.target.value })}
-                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
               />
             </div>
           )}
@@ -99,7 +128,7 @@ export default function ProfileBar() {
                 placeholder="AES 密钥"
                 value={profile.aesKey}
                 onChange={(e) => updateProfile({ aesKey: e.target.value })}
-                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
               />
             </div>
           )}
@@ -112,7 +141,7 @@ export default function ProfileBar() {
                 placeholder="/tmp/krb5cc_1000"
                 value={profile.ccachePath}
                 onChange={(e) => updateProfile({ ccachePath: e.target.value })}
-                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
               />
             </div>
           )}
@@ -124,7 +153,7 @@ export default function ProfileBar() {
               placeholder="例如: 192.168.1.100"
               value={profile.targetIP}
               onChange={(e) => updateProfile({ targetIP: e.target.value })}
-              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+              className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
             />
           </div>
 
@@ -135,18 +164,18 @@ export default function ProfileBar() {
               placeholder="例如: 192.168.1.1"
               value={profile.dcIP}
               onChange={(e) => updateProfile({ dcIP: e.target.value })}
-              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+              className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
             />
           </div>
         </div>
 
         {/* Auth Mode Buttons */}
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-1.5">
           {authModes.map((mode) => (
             <button
               key={mode.value}
               onClick={() => updateProfile({ authMode: mode.value })}
-              className={`px-4 py-1.5 rounded text-xs font-medium transition-colors ${
+              className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
                 profile.authMode === mode.value
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
@@ -157,9 +186,9 @@ export default function ProfileBar() {
           ))}
         </div>
 
-        {/* Advanced Fields (Collapsible) */}
+        {/* Advanced Fields (文档流内展开,随页面整体滚动) */}
         {showAdvanced && (
-          <div className="pt-3 border-t border-gray-800 space-y-3">
+          <div className="pt-3 mt-2 border-t border-gray-800 space-y-3">
             {/* Row 1: Target details */}
             <div className="grid grid-cols-4 gap-3">
               <div>
@@ -169,7 +198,7 @@ export default function ProfileBar() {
                   placeholder="DC01.corp.local"
                   value={profile.targetHost}
                   onChange={(e) => updateProfile({ targetHost: e.target.value })}
-                  className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
                 />
               </div>
               <div>
@@ -179,7 +208,7 @@ export default function ProfileBar() {
                   placeholder="445"
                   value={profile.targetPort}
                   onChange={(e) => updateProfile({ targetPort: e.target.value })}
-                  className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
                 />
               </div>
               <div>
@@ -189,7 +218,7 @@ export default function ProfileBar() {
                   placeholder="DC01.corp.local"
                   value={profile.dcFQDN}
                   onChange={(e) => updateProfile({ dcFQDN: e.target.value })}
-                  className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
                 />
               </div>
               <div>
@@ -199,7 +228,7 @@ export default function ProfileBar() {
                   placeholder="aad3b435..."
                   value={profile.lmHash}
                   onChange={(e) => updateProfile({ lmHash: e.target.value })}
-                  className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
                 />
               </div>
             </div>
@@ -213,7 +242,7 @@ export default function ProfileBar() {
                   placeholder="192.168.1.50"
                   value={profile.localIP}
                   onChange={(e) => updateProfile({ localIP: e.target.value })}
-                  className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
                 />
               </div>
               <div>
@@ -223,7 +252,7 @@ export default function ProfileBar() {
                   placeholder="4444"
                   value={profile.localPort}
                   onChange={(e) => updateProfile({ localPort: e.target.value })}
-                  className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
                 />
               </div>
               <div>
@@ -233,7 +262,7 @@ export default function ProfileBar() {
                   placeholder="HTTP/web.corp.local"
                   value={profile.spn}
                   onChange={(e) => updateProfile({ spn: e.target.value })}
-                  className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
                 />
               </div>
               <div>
@@ -243,7 +272,7 @@ export default function ProfileBar() {
                   placeholder="User"
                   value={profile.certTemplate}
                   onChange={(e) => updateProfile({ certTemplate: e.target.value })}
-                  className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
                 />
               </div>
             </div>
@@ -257,7 +286,7 @@ export default function ProfileBar() {
                   placeholder="CORP-DC-CA"
                   value={profile.caName}
                   onChange={(e) => updateProfile({ caName: e.target.value })}
-                  className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
                 />
               </div>
               <div>
@@ -267,7 +296,7 @@ export default function ProfileBar() {
                   placeholder="bloodhound.zip"
                   value={profile.bloodhoundZip}
                   onChange={(e) => updateProfile({ bloodhoundZip: e.target.value })}
-                  className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
                 />
               </div>
               <div>
@@ -277,7 +306,7 @@ export default function ProfileBar() {
                   placeholder="S-1-5-21-..."
                   value={profile.domainSid}
                   onChange={(e) => updateProfile({ domainSid: e.target.value })}
-                  className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
                 />
               </div>
             </div>
@@ -291,7 +320,7 @@ export default function ProfileBar() {
                   placeholder="mimikatz.exe"
                   value={profile.fileName}
                   onChange={(e) => updateProfile({ fileName: e.target.value })}
-                  className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
                 />
               </div>
               <div>
@@ -301,7 +330,7 @@ export default function ProfileBar() {
                   placeholder="C:\Windows\Temp\mimikatz.exe"
                   value={profile.remotePath}
                   onChange={(e) => updateProfile({ remotePath: e.target.value })}
-                  className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
                 />
               </div>
             </div>

@@ -5,10 +5,12 @@ interface CommandBlockProps {
   command: string;
   title: string;
   description?: string;
+  usage?: string;
+  example?: string;
   note?: string;
 }
 
-export default function CommandBlock({ command, title, description, note }: CommandBlockProps) {
+export default function CommandBlock({ command, title, description, usage, example, note }: CommandBlockProps) {
   const [copied, setCopied] = useState(false);
   const segments = highlightCommand(command);
   const missingFields = getMissingFields(command);
@@ -20,7 +22,7 @@ export default function CommandBlock({ command, title, description, note }: Comm
   };
 
   return (
-    <div className="command-block space-y-3">
+    <div className="command-block space-y-2">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <h4 className="text-base font-semibold text-gray-100 mb-1">{title}</h4>
@@ -36,7 +38,7 @@ export default function CommandBlock({ command, title, description, note }: Comm
         </button>
       </div>
 
-      <div className="bg-gray-950 border border-gray-800 rounded p-4 overflow-x-auto">
+      <div className="bg-gray-950 border border-gray-800 rounded p-3 overflow-x-auto">
         <pre className="text-sm text-gray-300 whitespace-pre-wrap break-all">
           {segments.map((seg, i) => (
             <span
@@ -54,6 +56,25 @@ export default function CommandBlock({ command, title, description, note }: Comm
           <span>⚠</span>
           <span>缺失字段: {missingFields.join(', ')}</span>
         </div>
+      )}
+
+      {usage && (
+        <details className="bg-gray-950 border border-gray-800 rounded">
+          <summary className="cursor-pointer select-none px-4 py-2 text-xs font-semibold text-blue-400 hover:text-blue-300">
+            📖 用法详解 / 生成器指南
+          </summary>
+          <pre className="px-4 pb-3 pt-1 text-xs text-gray-400 whitespace-pre-wrap break-all leading-relaxed border-t border-gray-800">
+            {usage}
+          </pre>
+          {example && (
+            <div className="px-4 pb-3">
+              <div className="text-xs font-semibold text-green-400 mb-1">样例:</div>
+              <pre className="text-xs text-gray-300 whitespace-pre-wrap break-all bg-gray-900 rounded p-2 border border-gray-800">
+                {example}
+              </pre>
+            </div>
+          )}
+        </details>
       )}
 
       {note && (

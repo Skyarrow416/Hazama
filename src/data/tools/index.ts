@@ -1,5 +1,6 @@
 import type { Category } from '../../types';
 import { impacketTools } from './impacket';
+import { bloodyadTools } from './bloodyad';
 import { certipyTools } from './certipy';
 import { netexecTools } from './netexec';
 import { kerberosTools } from './kerberos';
@@ -10,6 +11,11 @@ export const categories: Category[] = [
     id: 'impacket',
     name: 'Impacket',
     tools: impacketTools,
+  },
+  {
+    id: 'bloodyad',
+    name: 'bloodyAD (ACL/AD 操作)',
+    tools: bloodyadTools,
   },
   {
     id: 'certipy',
