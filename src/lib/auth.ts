@@ -135,6 +135,52 @@ export function buildImpacketDomainAuth(p: Profile): string {
 }
 
 /**
+ * Build bloodyAD global auth prefix
+ * bloodyAD [-d DOMAIN] [-u USER] [-p PASS | -k] [-f FORMAT] -H DC_HOST [-i DC_IP] <category> <subcommand> ...
+ * (Verified against bloodyAD v2.5.4 argparse)
+ * -p 接受明文密码或 LMHASH:NTHASH；Kerberos 用 -k（可配合 -f aes -p <AES Key>）
+ * -H 为必填：DC 的主机名或 IP；-i 在主机名无法解析时指定 DC IP
+ */
+export function buildBloodyADAuth(p: Profile): string {
+  const domain = v(p.domain, 'DOMAIN');
+  const user = v(p.username, 'USER');
+  const host = v(p.dcFQDN || p.dcIP, 'DC_HOST');
+
+  let authFlags = '';
+
+  switch (p.authMode) {
+    case 'password': {
+      const pass = v(p.password, 'PASSWORD');
+      authFlags = `-p ${pass}`;
+      break;
+    }
+    case 'hash': {
+      const lm = p.lmHash?.trim() || EMPTY_LM_HASH;
+      const nt = v(p.ntHash, 'NTHASH');
+      authFlags = `-p ${lm}:${nt}`;
+      break;
+    }
+    case 'kerberos': {
+      authFlags = `-k`;
+      break;
+    }
+    case 'aeskey': {
+      const aes = v(p.aesKey, 'AESKEY');
+      authFlags = `-k -f aes -p ${aes}`;
+      break;
+    }
+  }
+
+  let extra = '';
+  // -i: --host 无法解析时指定 DC IP
+  if (p.dcFQDN?.trim() && p.dcIP?.trim()) {
+    extra = ` -i ${p.dcIP}`;
+  }
+
+  return `bloodyAD -d ${domain} -u ${user} ${authFlags} -H ${host}${extra}`;
+}
+
+/**
  * Build NetExec (nxc) auth string
  * nxc <protocol> <target> -u USER -d DOMAIN (-p PASS | -H HASH | -k)
  */

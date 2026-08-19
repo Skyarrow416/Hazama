@@ -6,7 +6,7 @@
 
 **Hazama - Internal Network Penetration Command Generator**
 
-一个**纯前端**的内网渗透命令生成器，支持 **Impacket**、**Certipy**、**NetExec**、**Evil-WinRM**、**Kerberos** 和 **BloodHound** 等常见内网渗透工具的命令自动生成。
+一个**纯前端**的内网渗透命令生成器，支持 **Impacket (全 60 个命令)**、**bloodyAD**、**Certipy**、**NetExec**、**Evil-WinRM**、**Kerberos** 和 **BloodHound** 等常见内网渗透工具的命令自动生成。
 
 用户只需填写一份共享的凭据配置（域名、用户名、密码/哈希/Kerberos票据等），所有命令将**实时生成**，支持一键复制。
 
@@ -28,7 +28,8 @@
 - ✅ **纯前端** - Vite + React + TypeScript + Tailwind CSS，零后端依赖
 - ✅ **多认证方式** - 支持密码 / NTLM Hash (Pass-the-Hash) / Kerberos / AES Key，一键切换
 - ✅ **实时生成** - 修改凭据后所有命令自动更新
-- ✅ **115+ 条命令** - 涵盖 30+ 常用内网渗透工具
+- ✅ **290+ 条命令** - 涵盖 100+ 常用内网渗透工具/子命令
+- ✅ **用法详解** - 每条命令附带严格对照官方 argparse 定义的参数说明与填好值的真实样例
 - ✅ **占位符高亮** - 未填字段以黄色高亮显示，快速定位缺失参数
 - ✅ **一键复制** - 每条命令支持 Clipboard API 一键复制
 - ✅ **本地持久化** - 配置保存到 localStorage，刷新不丢失
@@ -39,9 +40,11 @@
 ## 🎯 当前版本: v0.2.0-beta
 
 ### 已实现功能
-- ✅ 5 大工具分类（Impacket, Certipy, NetExec, Kerberos/BloodHound, 文件传输）
-- ✅ 35+ 工具，140+ 条预定义命令
-- ✅ Impacket 命令采用 Kali 标准 `impacket-<name>` 命名，参数与官方 argparse 定义逐一核对
+- ✅ 6 大工具分类（Impacket, bloodyAD, Certipy, NetExec, Kerberos/BloodHound, 文件传输）
+- ✅ 105+ 工具/子命令，290+ 条预定义命令
+- ✅ Impacket 覆盖 Kali `impacket-scripts` 全部 60 个命令，参数与本机 v0.14.0.dev0 argparse 定义逐一核对
+- ✅ bloodyAD v2.5.4 全类别（add/get/set/remove/msldap）命令生成器，内置 ACL 攻击面简介
+- ✅ 每条命令附「用法详解/生成器指南」与真实样例（可折叠）
 - ✅ 文件传输模块：HTTP/SMB/FTP/BITS/certutil/PowerShell 六类通道，CMD 与 PowerShell 双格式
 - ✅ 4 种认证方式自动切换
 - ✅ 实时命令生成与占位符高亮
@@ -59,36 +62,45 @@
 
 ## 🛠️ 支持的工具 | Supported Tools
 
-### 1. **Impacket** (16 个工具, 48 条命令)
-- `impacket-secretsdump` - SAM/LSA/NTDS 导出、DCSync
-- `impacket-psexec` / `impacket-wmiexec` / `impacket-smbexec` / `impacket-atexec` / `impacket-dcomexec` - 远程命令执行
-- `impacket-GetUserSPNs` - Kerberoasting
-- `impacket-GetNPUsers` - AS-REP Roasting
-- `impacket-getTGT` / `impacket-ticketer` - Kerberos 票据操作（黄金/白银票据）
-- `impacket-mssqlclient` / `impacket-smbclient` / `impacket-lookupsid` / `impacket-GetADUsers` / `impacket-findDelegation` / `impacket-rpcdump`
+### 1. **Impacket** (60 个工具, 166 条命令 —— Kali `impacket-scripts` 全覆盖)
+- **远程执行** - `impacket-psexec` / `wmiexec` / `smbexec` / `atexec` / `dcomexec`
+- **凭据导出** - `impacket-secretsdump`(DCSync/VSS/离线解析) / `dpapi` / `mimikatz` / `GetLAPSPassword` / `Get-GPPPassword` / `changepasswd`
+- **Kerberos** - `GetUserSPNs`(Kerberoasting) / `GetNPUsers`(AS-REP) / `getTGT` / `getST`(S4U 委派) / `ticketer`(黄金/白银票据) / `ticketConverter` / `describeTicket` / `getPac` / `goldenPac` / `keylistattack`
+- **AD 权限攻击** - `dacledit` / `owneredit` / `rbcd` / `addcomputer` / `raiseChild`(子域到林根) / `ntlmrelayx`(NTLM 中继)
+- **枚举** - `lookupsid` / `samrdump` / `rpcdump` / `rpcmap` / `GetADUsers` / `GetADComputers` / `findDelegation` / `netview` / `net` / `DumpNTLMInfo` / `getArch` / `machine_role` / `mssqlinstance`
+- **SMB/文件/注册表** - `smbclient` / `smbserver` / `karmaSMB` / `services` / `reg` / `registry-read` / `ntfs-read` / `esentutl` / `split`
+- **其他** - `mssqlclient` / `wmipersist` / `wmiquery` / `ping` / `ping6` / `rdp_check` / `mqtt_check` / `sniff` / `sniffer` / `sambaPipe` / `tstool` / `exchanger`
 
-### 2. **Certipy (ADCS)** (7 个工具, 19 条命令)
+### 2. **bloodyAD (ACL/AD 操作)** (7 个工具组, 63 条命令, v2.5.4)
+- **总览** - 全局参数详解 + ACL 攻击面简介（DACL/ACE、GenericAll/WriteDacl/WriteOwner、RBCD、Shadow Credentials）
+- **add** - `computer` / `user` / `groupMember` / `genericAll` / `dcsync` / `rbcd` / `shadowCredentials` / `uac` / `dnsRecord` / `badSuccessor`
+- **get** - `object` / `search` / `writable` / `membership` / `children` / `dnsDump` / `trusts` / `bloodhound`
+- **set** - `object` / `owner` / `password` / `restore`
+- **remove** - `genericAll` / `dcsync` / `rbcd` / `shadowCredentials` / `groupMember` / `object` / `uac` / `dnsRecord`
+- **msldap** - 28 个精选子命令（`whoami` / `query` / `dump` / `getsd` / `setsd` / `laps` / `gmsa` / `shadowcred` / `changeuserpw` 等）
+
+### 3. **Certipy (ADCS)** (7 个工具, 19 条命令)
 - `find` - 查找漏洞证书模板（ESC1-8）
 - `req` - 申请证书（ESC1/ESC4 利用）
 - `auth` - 使用证书获取 TGT/NTLM 哈希
 - `shadow` - 影子凭据攻击
 - `relay` - NTLM Relay 到 ADCS
 
-### 3. **NetExec / Evil-WinRM** (6 个工具, 31 条命令)
+### 4. **NetExec / Evil-WinRM** (6 个工具, 31 条命令)
 - `nxc smb` - SMB 枚举、共享、用户、组、密码策略、SAM/LSA/NTDS 导出
 - `nxc winrm` / `nxc ldap` / `nxc mssql` - WinRM/LDAP/MSSQL 协议利用
 - `nxc ldap --bloodhound` - BloodHound 数据采集
 - `evil-winrm` - WinRM 交互式 Shell
 - `smbclient` - SMB 客户端
 
-### 4. **Kerberos / BloodHound** (5 个工具, 21 条命令)
+### 5. **Kerberos / BloodHound** (5 个工具, 21 条命令)
 - `bloodhound-python` / `SharpHound` - AD 图谱采集
 - `kinit` / `klist` / `kdestroy` - Kerberos 票据管理
 - `ldapsearch` - LDAP 查询（用户、组、SPN）
 - `Rubeus` - Kerberoasting、AS-REP Roasting、Pass-the-Ticket
 - **完整攻击流程** - Kerberoasting / AS-REP Roasting / Pass-the-Ticket 全流程命令串联
 
-### 5. **文件传输 File Transfer** (6 个工具, 20+ 条命令)
+### 6. **文件传输 File Transfer** (6 个工具, 20+ 条命令)
 - **攻击机托管** - `python3 -m http.server` / `impacket-smbserver` / `uploadserver`
 - **HTTP (PowerShell)** - WebClient / Invoke-WebRequest 下载、无落地 IEX 执行、HTTP 上传
 - **HTTP (CMD)** - `certutil -urlcache` / `bitsadmin` / `Start-BitsTransfer` / certutil Base64 编码
@@ -168,7 +180,9 @@ Hazama/
 │   │   └── CommandBlock.tsx      # 命令块 + 复制 + 高亮
 │   ├── data/
 │   │   ├── fields.ts             # 表单字段定义
-│   │   └── tools/                # 4 个工具命令库
+│   │   └── tools/                # 6 个工具命令库
+│   │       ├── impacket/         # impacket 全 60 命令(按主题 7 个数据文件)
+│   │       ├── bloodyad.ts       # bloodyAD v2.5.4 (含 ACL 简介)
 │   ├── lib/
 │   │   ├── auth.ts               # 核心认证字符串构造
 │   │   └── highlight.ts          # 占位符高亮
@@ -255,6 +269,7 @@ MIT License - 详见 [LICENSE](LICENSE)
 ## 🙏 致谢 | Acknowledgments
 
 - [Impacket](https://github.com/fortra/impacket) - SecureAuth Corporation
+- [bloodyAD](https://github.com/CravateRouge/bloodyAD) - @CravateRouge
 - [Certipy](https://github.com/ly4k/Certipy) - @ly4k
 - [NetExec](https://github.com/Pennyw0rth/NetExec) - @Pennyw0rth
 - [Evil-WinRM](https://github.com/Hackplayers/evil-winrm) - @Hackplayers
