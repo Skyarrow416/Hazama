@@ -241,8 +241,9 @@ export function buildEvilWinRMAuth(p: Profile): string {
 }
 
 /**
- * Build Certipy auth string
- * certipy <command> -u USER@DOMAIN (-p PASS | -hashes :NT | -k) -dc-ip DCIP
+ * Build Certipy v5 (certipy-ad) auth string
+ * certipy-ad <command> -u USER@DOMAIN (-p PASS | -hashes [LM:]NT | -k -no-pass | -aes KEY -k) -dc-ip DCIP
+ * (Verified against certipy-ad v5.0.4 argparse; v5 将 v4 的 -aesKey 改名为 -aes)
  */
 export function buildCertipyAuth(p: Profile, command: string): string {
   const user = v(p.username, 'USER');
@@ -262,12 +263,16 @@ export function buildCertipyAuth(p: Profile, command: string): string {
       authFlags = `-hashes :${nt}`;
       break;
     }
-    case 'kerberos':
+    case 'kerberos': {
+      authFlags = `-k -no-pass`;
+      break;
+    }
     case 'aeskey': {
-      authFlags = `-k`;
+      const aes = v(p.aesKey, 'AESKEY');
+      authFlags = `-aes ${aes} -k`;
       break;
     }
   }
 
-  return `certipy ${command} -u ${user}@${domain} ${authFlags} -dc-ip ${dcIP}`.trim();
+  return `certipy-ad ${command} -u ${user}@${domain} ${authFlags} -dc-ip ${dcIP}`.trim();
 }

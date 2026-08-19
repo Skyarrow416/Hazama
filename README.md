@@ -79,12 +79,18 @@
 - **remove** - `genericAll` / `dcsync` / `rbcd` / `shadowCredentials` / `groupMember` / `object` / `uac` / `dnsRecord`
 - **msldap** - 28 个精选子命令（`whoami` / `query` / `dump` / `getsd` / `setsd` / `laps` / `gmsa` / `shadowcred` / `changeuserpw` 等）
 
-### 3. **Certipy (ADCS)** (7 个工具, 19 条命令)
-- `find` - 查找漏洞证书模板（ESC1-8）
-- `req` - 申请证书（ESC1/ESC4 利用）
-- `auth` - 使用证书获取 TGT/NTLM 哈希
-- `shadow` - 影子凭据攻击
-- `relay` - NTLM Relay 到 ADCS
+### 3. **Certipy (ADCS)** (11 个工具, 43 条命令, v5.0.4 / `certipy-ad`)
+- `find` - 枚举 ADCS,识别 ESC1-ESC16 漏洞模板与错误配置
+- `req` - 申请证书（ESC1/ESC9 利用、Web Enrollment、续期/归档）
+- `auth` - PFX 换 TGT/NTLM 哈希、LDAPS shell、导出 kirbi
+- `ca` - CA 备份（DPAPI 私钥）、审批挂起请求、管理 Officer/Manager 角色（ESC7）
+- `forge` - 黄金证书（离线伪造任意身份，支持 SID/DNS SAN)
+- `shadow` - Shadow Credentials 攻击（auto/add/remove/list）
+- `account` - 创建/更新机器账户（RBCD 前置、改 dNSHostName）
+- `template` - 模板配置写入/备份/恢复（ESC4)
+- `relay` - NTLM Relay 到 Web Enrollment (ESC8) / RPC 接口 (ESC11)
+- `cert` - PFX/PEM 格式互转
+- `parse` - 离线解析注册表/BOF 数据评估模板漏洞
 
 ### 4. **NetExec / Evil-WinRM** (6 个工具, 31 条命令)
 - `nxc smb` - SMB 枚举、共享、用户、组、密码策略、SAM/LSA/NTDS 导出
