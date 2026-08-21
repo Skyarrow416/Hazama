@@ -1,5 +1,5 @@
 import type { Tool } from '../../../types';
-import { buildImpacketAuth, buildImpacketDomainAuth, v } from '../../../lib/auth';
+import { buildImpacketAuth, buildImpacketDomainAuth, q, v } from '../../../lib/auth';
 
 /**
  * impacket 枚举/信息收集类工具
@@ -150,7 +150,7 @@ target: [[domain/]username[:password]@]<目标主机名或IP>
         id: 'rpcmap-auth-brute',
         title: '带认证暴力枚举 opnum',
         description: '通过命名管道认证后暴力枚举接口 UUID 与 opnum，挖掘可调用的 RPC 方法',
-        build: (p) => `impacket-rpcmap -brute-uuids -brute-opnums -auth-rpc ${v(p.domain, 'DOMAIN')}/${v(p.username, 'USER')}:${v(p.password, 'PASSWORD')} 'ncacn_np:${v(p.targetIP || p.targetHost, 'TARGET')}[\\pipe\\spoolss]'`,
+        build: (p) => `impacket-rpcmap -brute-uuids -brute-opnums -auth-rpc ${v(p.domain, 'DOMAIN')}/${v(p.username, 'USER')}:${q(v(p.password, 'PASSWORD'))} 'ncacn_np:${v(p.targetIP || p.targetHost, 'TARGET')}[\\pipe\\spoolss]'`,
         usage: `ncacn_np 走 SMB 命名管道，需要传输层/RPC 层认证
 -auth-rpc: RPC 层凭据 [domain/]username[:password]
 -brute-uuids: 暴力枚举 UUID

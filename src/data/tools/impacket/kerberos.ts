@@ -1,6 +1,6 @@
 // 参数定义来源为本机 impacket v0.14.0.dev0 --help 与官方 examples
 import type { Tool } from '../../../types';
-import { buildImpacketAuth, buildImpacketDomainAuth, v } from '../../../lib/auth';
+import { buildImpacketAuth, buildImpacketDomainAuth, q, v } from '../../../lib/auth';
 
 export const impacketKerberosTools: Tool[] = [
   {
@@ -336,7 +336,7 @@ AES256 黄金票据在现代默认配置下与真实票据的 etype 一致，更
         id: 'ticketer-request',
         title: '克隆真实票据 (-request)',
         description: '-request 先向域请求真实票据再按参数改写，需指定 -user；可降低票据特征异常',
-        build: (p) => `impacket-ticketer -request -nthash ${v(p.ntHash, 'KRBTGT_NTHASH')} -domain-sid ${v(p.domainSid, 'DOMAIN_SID')} -domain ${v(p.domain, 'DOMAIN')} -user ${v(p.username, 'USER')} -password ${v(p.password, 'PASSWORD')} -dc-ip ${v(p.dcIP, 'DC_IP')} ${v('', 'TICKET_USER')}`,
+        build: (p) => `impacket-ticketer -request -nthash ${v(p.ntHash, 'KRBTGT_NTHASH')} -domain-sid ${v(p.domainSid, 'DOMAIN_SID')} -domain ${v(p.domain, 'DOMAIN')} -user ${v(p.username, 'USER')} -password ${q(v(p.password, 'PASSWORD'))} -dc-ip ${v(p.dcIP, 'DC_IP')} ${v('', 'TICKET_USER')}`,
         usage: `位置参数:
   target            新票据中的用户名
 关键参数:
@@ -450,7 +450,7 @@ PAC 中包含用户 RID、组成员、LogonInfo 等，是排查票据伪造/委�
         id: 'getpac-password',
         title: '密码认证获取目标用户 PAC',
         description: '-targetUser 指定要取 PAC 的用户；工具会走 S4U2self 并解析 PAC',
-        build: (p) => `impacket-getPac ${v(p.domain, 'DOMAIN')}/${v(p.username, 'USER')}:${v(p.password, 'PASSWORD')} -targetUser ${v('', 'TARGET_USER')}`,
+        build: (p) => `impacket-getPac ${v(p.domain, 'DOMAIN')}/${v(p.username, 'USER')}:${q(v(p.password, 'PASSWORD'))} -targetUser ${v('', 'TARGET_USER')}`,
         usage: `位置参数:
   credentials       domain/username[:password]，用于发起请求的有效域凭据
 关键参数:

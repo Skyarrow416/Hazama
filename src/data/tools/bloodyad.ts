@@ -1,5 +1,5 @@
 import type { Tool } from '../../types';
-import { buildBloodyADAuth, v } from '../../lib/auth';
+import { buildBloodyADAuth, q, v } from '../../lib/auth';
 
 /**
  * bloodyAD v2.5.4 数据文件
@@ -52,7 +52,7 @@ bloodyAD 对应命令:
         title: '全局用法: 明文密码认证',
         description: '最基础的认证形式，-H 指定 DC 主机 (必填)',
         build: (p) =>
-          `bloodyAD -d ${v(p.domain, 'DOMAIN')} -u ${v(p.username, 'USER')} -p ${v(p.password, 'PASSWORD')} -H ${v(p.dcFQDN || p.dcIP, 'DC_HOST')} get writable --detail`,
+          `bloodyAD -d ${v(p.domain, 'DOMAIN')} -u ${v(p.username, 'USER')} -p ${q(v(p.password, 'PASSWORD'))} -H ${v(p.dcFQDN || p.dcIP, 'DC_HOST')} get writable --detail`,
         usage: `语法: bloodyAD -d <域名> -u <用户名> -p <密码> -H <DC主机> <类别> <子命令>
 -d: 域名 (如 corp.local)
 -u: 用户名
@@ -94,7 +94,7 @@ Kerberos 按 SPN 匹配主机名，-H 必须用 DC 的 FQDN 而非 IP
         title: '全局用法: LDAPS 加密连接',
         description: '-s 走 TLS 的 LDAPS/GCS，某些操作 (如改密码) 必须加密通道',
         build: (p) =>
-          `bloodyAD -s -d ${v(p.domain, 'DOMAIN')} -u ${v(p.username, 'USER')} -p ${v(p.password, 'PASSWORD')} -H ${v(p.dcFQDN || p.dcIP, 'DC_HOST')} get trusts`,
+          `bloodyAD -s -d ${v(p.domain, 'DOMAIN')} -u ${v(p.username, 'USER')} -p ${q(v(p.password, 'PASSWORD'))} -H ${v(p.dcFQDN || p.dcIP, 'DC_HOST')} get trusts`,
         usage: `语法: bloodyAD -s -d <域名> -u <用户名> -p <密码> -H <DC主机> <类别> <子命令>
 -s: 使用 LDAP over TLS (LDAPS, 636 端口)
 修改 unicodePwd 等敏感属性的操作要求加密通道，必须加 -s
@@ -107,7 +107,7 @@ Kerberos 按 SPN 匹配主机名，-H 必须用 DC 的 FQDN 而非 IP
         title: '全局用法: JSON 输出',
         description: '--json 以 JSON 格式输出，便于脚本化处理结果',
         build: (p) =>
-          `bloodyAD -d ${v(p.domain, 'DOMAIN')} -u ${v(p.username, 'USER')} -p ${v(p.password, 'PASSWORD')} -H ${v(p.dcFQDN || p.dcIP, 'DC_HOST')} --json get search --filter "(adminCount=1)"`,
+          `bloodyAD -d ${v(p.domain, 'DOMAIN')} -u ${v(p.username, 'USER')} -p ${q(v(p.password, 'PASSWORD'))} -H ${v(p.dcFQDN || p.dcIP, 'DC_HOST')} --json get search --filter "(adminCount=1)"`,
         usage: `语法: bloodyAD [认证参数] --json <类别> <子命令>
 --json: 结果以 JSON 格式输出，方便 jq/脚本处理
 配合 -v {QUIET,INFO,DEBUG,TRACE} 可调整日志详细程度

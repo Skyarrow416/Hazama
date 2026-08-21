@@ -1,5 +1,5 @@
 import type { Profile, Tool } from '../../types';
-import { v } from '../../lib/auth';
+import { q, v } from '../../lib/auth';
 
 /**
  * 文件传输命令生成
@@ -166,7 +166,7 @@ export const filetransferTools: Tool[] = [
         id: 'ft-psexec-c',
         title: 'psexec -c 上传执行',
         description: '复制本地文件到目标 ADMIN$ 并执行',
-        build: (p) => `impacket-psexec ${v(p.domain, 'DOMAIN')}/${v(p.username, 'USER')}:${v(p.password, 'PASSWORD')}@${v(p.targetIP || p.targetHost, 'TARGET')} -c ${fname(p)}`,
+        build: (p) => `impacket-psexec ${v(p.domain, 'DOMAIN')}/${v(p.username, 'USER')}:${q(v(p.password, 'PASSWORD'))}@${v(p.targetIP || p.targetHost, 'TARGET')} -c ${fname(p)}`,
       },
       {
         id: 'ft-smbclient-put',

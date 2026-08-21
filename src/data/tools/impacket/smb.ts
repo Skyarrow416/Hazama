@@ -1,7 +1,7 @@
 // 参数定义来源为本机 impacket v0.14.0.dev0 --help 与官方 examples。
 // 覆盖: smbclient / smbserver / karmaSMB / services / reg / registry-read / ntfs-read / esentutl / split
 import type { Tool } from '../../../types';
-import { buildImpacketAuth, v } from '../../../lib/auth';
+import { buildImpacketAuth, q, v } from '../../../lib/auth';
 
 export const impacketSmbTools: Tool[] = [
   {
@@ -81,7 +81,7 @@ export const impacketSmbTools: Tool[] = [
         id: 'smbserver-auth',
         title: '带认证的 SMB 共享',
         description: '-username/-password 要求客户端认证，常用于绕过目标对匿名共享的限制',
-        build: (p) => `impacket-smbserver -smb2support -username ${v(p.username, 'USER')} -password ${v(p.password, 'PASSWORD')} ${v(p.fileName, 'SHARE_NAME')} ${v(p.remotePath, 'SHARE_PATH')}`,
+        build: (p) => `impacket-smbserver -smb2support -username ${v(p.username, 'USER')} -password ${q(v(p.password, 'PASSWORD'))} ${v(p.fileName, 'SHARE_NAME')} ${v(p.remotePath, 'SHARE_PATH')}`,
         usage: `位置参数:
   shareName         要添加的共享名
   sharePath         共享对应的本地目录路径
