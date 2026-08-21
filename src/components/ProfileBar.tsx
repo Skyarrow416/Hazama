@@ -98,7 +98,7 @@ export default function ProfileBar({ onSelectTool }: ProfileBarProps) {
             <div>
               <label className="block text-xs text-gray-500 mb-1">密码 (Password)</label>
               <input
-                type="password"
+                type="text"
                 placeholder="输入密码"
                 value={profile.password}
                 onChange={(e) => updateProfile({ password: e.target.value })}

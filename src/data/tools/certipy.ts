@@ -1,6 +1,6 @@
 // 参数定义来源为本机 certipy-ad v5.0.4 --help 与官方 wiki (https://github.com/ly4k/Certipy/wiki)
 import type { Tool } from '../../types';
-import { buildCertipyAuth, v } from '../../lib/auth';
+import { buildCertipyAuth, q, v } from '../../lib/auth';
 
 export const certipyTools: Tool[] = [
   {
@@ -513,7 +513,7 @@ auth 换 TGT 即可 DCSync。`,
         id: 'certipy-cert-password',
         title: '重打包并设置密码',
         description: '读取 PFX 后用 -export-password 重新加密导出,兼容只认加密 PFX 的工具',
-        build: (p) => `certipy-ad cert -pfx ${v(p.fileName, 'USER.pfx')} -export -out ${v('', 'protected.pfx')} -export-password ${v(p.password, 'PASSWORD')}`,
+        build: (p) => `certipy-ad cert -pfx ${v(p.fileName, 'USER.pfx')} -export -out ${v('', 'protected.pfx')} -export-password ${q(v(p.password, 'PASSWORD'))}`,
         usage: `输入参数:
   -pfx FILE           读取 PFX/P12 文件
   -password P         输入 PFX 的密码

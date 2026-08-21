@@ -10,6 +10,17 @@ export function v(value: string | undefined, placeholder: string): string {
 }
 
 /**
+ * Shell 单引号包裹 (密码等可能含 $ ! 空格等特殊字符的值)。
+ * 已验证: 单引号在 shell 解析阶段被剥离，argv 与不加引号完全一致，
+ * impacket 的 parse_identity/parse_target 收到的字符串不受影响；
+ * 不加引号时含 $ ! & ; 空格 的密码反而会被 shell 展开/截断。
+ * 内嵌单引号按 POSIX 规范转义为 '\''。
+ */
+export function q(value: string): string {
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
+/**
  * impacket 各 example 脚本的 argparse 能力差异很大，不能一刀切:
  * - lookupsid/rpcdump 没有 -dc-ip
  * - rpcdump 没有任何 Kerberos 参数 (-k/-no-pass/-aesKey)
@@ -45,11 +56,11 @@ export function buildImpacketAuth(p: Profile, caps: ImpacketCaps = {}): string {
     : v(p.targetIP || p.targetHost, 'TARGET');
 
   let target = '';
-  let authFlags = '';
+  const flags: string[] = [];
 
   switch (p.authMode) {
     case 'password': {
-      const pass = v(p.password, 'PASSWORD');
+      const pass = q(v(p.password, 'PASSWORD'));
       target = `${domain}/${user}:${pass}@${host}`;
       break;
     }
@@ -57,34 +68,34 @@ export function buildImpacketAuth(p: Profile, caps: ImpacketCaps = {}): string {
       const lm = p.lmHash?.trim() || EMPTY_LM_HASH;
       const nt = v(p.ntHash, 'NTHASH');
       target = `${domain}/${user}@${host}`;
-      authFlags = `-hashes ${lm}:${nt}`;
+      flags.push(`-hashes ${lm}:${nt}`);
       break;
     }
     case 'kerberos': {
       target = `${domain}/${user}@${host}`;
-      if (kerberos) authFlags = `-k -no-pass`;
+      if (kerberos) flags.push('-k -no-pass');
       break;
     }
     case 'aeskey': {
       const aes = v(p.aesKey, 'AESKEY');
       target = `${domain}/${user}@${host}`;
-      if (aesKey) authFlags = `-aesKey ${aes} -k`;
-      else if (kerberos) authFlags = `-k -no-pass`;
+      if (aesKey) flags.push(`-aesKey ${aes} -k`);
+      else if (kerberos) flags.push('-k -no-pass');
       break;
     }
   }
 
   // -target-ip: 主机名无法解析时指定目标 IP (仅部分工具支持)
   if (targetIp && p.targetHost?.trim() && p.targetIP?.trim()) {
-    authFlags += ` -target-ip ${p.targetIP}`;
+    flags.push(`-target-ip ${p.targetIP.trim()}`);
   }
 
   // -dc-ip: 指定域控 IP (域查询/Kerberos 场景常用)
   if (dcIp && p.dcIP?.trim()) {
-    authFlags += ` -dc-ip ${p.dcIP}`;
+    flags.push(`-dc-ip ${p.dcIP.trim()}`);
   }
 
-  return `${target}${authFlags ? ' ' + authFlags : ''}`;
+  return [target, ...flags].join(' ');
 }
 
 /**
@@ -98,11 +109,11 @@ export function buildImpacketDomainAuth(p: Profile): string {
   const user = v(p.username, 'USER');
 
   let target = '';
-  let authFlags = '';
+  const flags: string[] = [];
 
   switch (p.authMode) {
     case 'password': {
-      const pass = v(p.password, 'PASSWORD');
+      const pass = q(v(p.password, 'PASSWORD'));
       target = `${domain}/${user}:${pass}`;
       break;
     }
@@ -110,28 +121,28 @@ export function buildImpacketDomainAuth(p: Profile): string {
       const lm = p.lmHash?.trim() || EMPTY_LM_HASH;
       const nt = v(p.ntHash, 'NTHASH');
       target = `${domain}/${user}`;
-      authFlags = `-hashes ${lm}:${nt}`;
+      flags.push(`-hashes ${lm}:${nt}`);
       break;
     }
     case 'kerberos': {
       target = `${domain}/${user}`;
-      authFlags = `-k -no-pass`;
+      flags.push('-k -no-pass');
       break;
     }
     case 'aeskey': {
       const aes = v(p.aesKey, 'AESKEY');
       target = `${domain}/${user}`;
-      authFlags = `-aesKey ${aes} -k`;
+      flags.push(`-aesKey ${aes} -k`);
       break;
     }
   }
 
   // Add DC IP if present
   if (p.dcIP?.trim()) {
-    authFlags += ` -dc-ip ${p.dcIP}`;
+    flags.push(`-dc-ip ${p.dcIP.trim()}`);
   }
 
-  return `${target}${authFlags ? ' ' + authFlags : ''}`;
+  return [target, ...flags].join(' ');
 }
 
 /**
@@ -150,7 +161,7 @@ export function buildBloodyADAuth(p: Profile): string {
 
   switch (p.authMode) {
     case 'password': {
-      const pass = v(p.password, 'PASSWORD');
+      const pass = q(v(p.password, 'PASSWORD'));
       authFlags = `-p ${pass}`;
       break;
     }
@@ -193,7 +204,7 @@ export function buildNetExecAuth(p: Profile, protocol: string = 'smb'): string {
 
   switch (p.authMode) {
     case 'password': {
-      const pass = v(p.password, 'PASSWORD');
+      const pass = q(v(p.password, 'PASSWORD'));
       authFlags = `-p ${pass}`;
       break;
     }
@@ -224,7 +235,7 @@ export function buildEvilWinRMAuth(p: Profile): string {
 
   switch (p.authMode) {
     case 'password': {
-      const pass = v(p.password, 'PASSWORD');
+      const pass = q(v(p.password, 'PASSWORD'));
       authFlags = `-p ${pass}`;
       break;
     }
@@ -254,7 +265,7 @@ export function buildCertipyAuth(p: Profile, command: string): string {
 
   switch (p.authMode) {
     case 'password': {
-      const pass = v(p.password, 'PASSWORD');
+      const pass = q(v(p.password, 'PASSWORD'));
       authFlags = `-p ${pass}`;
       break;
     }

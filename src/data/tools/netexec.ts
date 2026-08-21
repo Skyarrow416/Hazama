@@ -1,5 +1,5 @@
 import type { Tool } from '../../types';
-import { buildNetExecAuth, buildEvilWinRMAuth, v } from '../../lib/auth';
+import { buildNetExecAuth, buildEvilWinRMAuth, q, v } from '../../lib/auth';
 
 /**
  * NetExec (nxc) v1.5.1 数据文件
@@ -466,7 +466,7 @@ xp_cmdshell 以 SQL Server 服务账户运行,该账户常有高权限或
         id: 'smbclient-list',
         title: '列举共享',
         description: '-L 列出目标共享,无需登录共享本身',
-        build: (p) => `smbclient -L //${v(p.targetIP, 'TARGET')} -U ${v(p.domain, 'DOMAIN')}/${v(p.username, 'USER')}%${v(p.password, 'PASSWORD')}`,
+        build: (p) => `smbclient -L //${v(p.targetIP, 'TARGET')} -U ${v(p.domain, 'DOMAIN')}/${v(p.username, 'USER')}%${q(v(p.password, 'PASSWORD'))}`,
         usage: `语法: smbclient -L //<target> -U <域>/<用户>%<密码>
   -N           匿名 (空会话)
   -U           用户名%密码;省略密码则交互输入`,
@@ -476,7 +476,7 @@ xp_cmdshell 以 SQL Server 服务账户运行,该账户常有高权限或
         id: 'smbclient-connect',
         title: '连接共享',
         description: '连接指定共享进入交互式 FTP 风格 shell',
-        build: (p) => `smbclient //${v(p.targetIP, 'TARGET')}/C$ -U ${v(p.domain, 'DOMAIN')}/${v(p.username, 'USER')}%${v(p.password, 'PASSWORD')}`,
+        build: (p) => `smbclient //${v(p.targetIP, 'TARGET')}/C$ -U ${v(p.domain, 'DOMAIN')}/${v(p.username, 'USER')}%${q(v(p.password, 'PASSWORD'))}`,
         usage: `语法: smbclient //<target>/<共享> -U <域>/<用户>%<密码>
 进入后: ls / cd / get <文件> / put <文件> / mget / prompt (关确认)
   -c "<命令>"  非交互执行,例: -c "get secrets.txt"`,

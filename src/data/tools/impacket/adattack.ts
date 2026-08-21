@@ -1,5 +1,5 @@
 import type { Profile, Tool } from '../../../types';
-import { buildImpacketDomainAuth, v } from '../../../lib/auth';
+import { buildImpacketDomainAuth, q, v } from '../../../lib/auth';
 
 /**
  * impacket AD 攻击类工具 (DACL/Owner/RBCD/机器账户/域提权/NTLM 中继)
@@ -25,7 +25,7 @@ function buildRaiseChildAuth(p: Profile): string {
 
   switch (p.authMode) {
     case 'password':
-      return `${domain}/${user}:${v(p.password, 'PASSWORD')}`;
+      return `${domain}/${user}:${q(v(p.password, 'PASSWORD'))}`;
     case 'hash': {
       const lm = p.lmHash?.trim() || EMPTY_LM_HASH;
       return `${domain}/${user} -hashes ${lm}:${v(p.ntHash, 'NTHASH')}`;
