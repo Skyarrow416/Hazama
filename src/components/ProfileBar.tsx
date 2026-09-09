@@ -147,7 +147,7 @@ export default function ProfileBar({ onSelectTool }: ProfileBarProps) {
           )}
 
           <div>
-            <label className="block text-xs text-gray-500 mb-1">目标 IP (Target IP)</label>
+            <label className="block text-xs text-gray-500 mb-1">目标 IP (留空则用 DC IP)</label>
             <input
               type="text"
               placeholder="例如: 192.168.1.100"
@@ -202,6 +202,16 @@ export default function ProfileBar({ onSelectTool }: ProfileBarProps) {
                 />
               </div>
               <div>
+                <label className="block text-xs text-gray-500 mb-1">目标对象 (用户/组/DN)</label>
+                <input
+                  type="text"
+                  placeholder="Administrator 或 CN=...,DC=corp,DC=local"
+                  value={profile.targetObject}
+                  onChange={(e) => updateProfile({ targetObject: e.target.value })}
+                  className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
                 <label className="block text-xs text-gray-500 mb-1">目标端口</label>
                 <input
                   type="text"
@@ -218,16 +228,6 @@ export default function ProfileBar({ onSelectTool }: ProfileBarProps) {
                   placeholder="DC01.corp.local"
                   value={profile.dcFQDN}
                   onChange={(e) => updateProfile({ dcFQDN: e.target.value })}
-                  className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">LM Hash (可选)</label>
-                <input
-                  type="text"
-                  placeholder="aad3b435..."
-                  value={profile.lmHash}
-                  onChange={(e) => updateProfile({ lmHash: e.target.value })}
                   className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
                 />
               </div>
@@ -306,6 +306,16 @@ export default function ProfileBar({ onSelectTool }: ProfileBarProps) {
                   placeholder="S-1-5-21-..."
                   value={profile.domainSid}
                   onChange={(e) => updateProfile({ domainSid: e.target.value })}
+                  className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">LM Hash (可选)</label>
+                <input
+                  type="text"
+                  placeholder="aad3b435..."
+                  value={profile.lmHash}
+                  onChange={(e) => updateProfile({ lmHash: e.target.value })}
                   className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
                 />
               </div>

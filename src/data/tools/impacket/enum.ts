@@ -187,7 +187,7 @@ target: [[domain/]username[:password]@]<目标主机名或IP>
         id: 'GetADUsers-user',
         title: '查询指定用户',
         description: '-user 只查询单个用户的数据，配合 -all 可查已禁用账户',
-        build: (p) => `impacket-GetADUsers ${buildImpacketDomainAuth(p)} -user ${v('', 'TARGET_USER')}`,
+        build: (p) => `impacket-GetADUsers ${buildImpacketDomainAuth(p)} -user ${v(p.targetObject, 'TARGET_USER')}`,
         usage: `-user: 只请求指定用户的数据
 配合 -all 使用时，即使该账户被禁用也会返回信息
 target 为域身份 domain[/username[:password]]

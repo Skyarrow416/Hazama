@@ -75,54 +75,6 @@ export const kerberosTools: Tool[] = [
     ],
   },
   {
-    id: 'ldapsearch',
-    name: 'ldapsearch',
-    category: 'kerberos',
-    homepage: 'https://linux.die.net/man/1/ldapsearch',
-    description: 'LDAP 查询工具',
-    commands: [
-      {
-        id: 'ldapsearch-all-users',
-        title: '查询所有域用户',
-        build: (p) => {
-          const dcFQDN = v(p.dcFQDN || p.dcIP, 'DC');
-          const domain = v(p.domain, 'DOMAIN');
-          const user = v(p.username, 'USER');
-          const password = q(v(p.password, 'PASSWORD'));
-          const baseDN = domain.split('.').map(s => `dc=${s}`).join(',');
-
-          return `ldapsearch -x -H ldap://${dcFQDN} -D "${user}@${domain}" -w ${password} -b "${baseDN}" "(objectClass=user)"`;
-        },
-      },
-      {
-        id: 'ldapsearch-admins',
-        title: '查询域管理员组',
-        build: (p) => {
-          const dcFQDN = v(p.dcFQDN || p.dcIP, 'DC');
-          const domain = v(p.domain, 'DOMAIN');
-          const user = v(p.username, 'USER');
-          const password = q(v(p.password, 'PASSWORD'));
-          const baseDN = domain.split('.').map(s => `dc=${s}`).join(',');
-
-          return `ldapsearch -x -H ldap://${dcFQDN} -D "${user}@${domain}" -w ${password} -b "${baseDN}" "(memberOf=CN=Domain Admins,CN=Users,${baseDN})"`;
-        },
-      },
-      {
-        id: 'ldapsearch-spn',
-        title: '查询 SPN (Kerberoasting)',
-        build: (p) => {
-          const dcFQDN = v(p.dcFQDN || p.dcIP, 'DC');
-          const domain = v(p.domain, 'DOMAIN');
-          const user = v(p.username, 'USER');
-          const password = q(v(p.password, 'PASSWORD'));
-          const baseDN = domain.split('.').map(s => `dc=${s}`).join(',');
-
-          return `ldapsearch -x -H ldap://${dcFQDN} -D "${user}@${domain}" -w ${password} -b "${baseDN}" "(&(servicePrincipalName=*)(objectCategory=user))"`;
-        },
-      },
-    ],
-  },
-  {
     id: 'rubeus',
     name: 'Rubeus',
     category: 'kerberos',

@@ -21,6 +21,27 @@ export function q(value: string): string {
 }
 
 /**
+ * 由域名推导 Base DN: corp.local -> DC=corp,DC=local
+ * 域名未填时返回 undefined (配合 v() 显示占位符)
+ */
+export function domainDN(p: Profile): string | undefined {
+  const d = p.domain?.trim();
+  if (!d) return undefined;
+  return d.split('.').filter(Boolean).map(part => `DC=${part}`).join(',');
+}
+
+/**
+ * 目标地址解析: 目标即域控时只需填 DC IP —— targetIP/targetHost 留空自动回退。
+ * Kerberos 认证按 SPN 匹配主机名，优先主机名；其余优先 IP。
+ */
+export function targetAddress(p: Profile, kerberos: boolean): string {
+  if (kerberos) {
+    return v(p.targetHost || p.targetIP || p.dcFQDN || p.dcIP, 'TARGET');
+  }
+  return v(p.targetIP || p.targetHost || p.dcIP || p.dcFQDN, 'TARGET');
+}
+
+/**
  * impacket 各 example 脚本的 argparse 能力差异很大，不能一刀切:
  * - lookupsid/rpcdump 没有 -dc-ip
  * - rpcdump 没有任何 Kerberos 参数 (-k/-no-pass/-aesKey)
@@ -51,9 +72,7 @@ export function buildImpacketAuth(p: Profile, caps: ImpacketCaps = {}): string {
   const domain = v(p.domain, 'DOMAIN');
   const user = v(p.username, 'USER');
   const useKerberosTarget = p.authMode === 'kerberos' || p.authMode === 'aeskey';
-  const host = useKerberosTarget
-    ? v(p.targetHost || p.targetIP, 'TARGET')
-    : v(p.targetIP || p.targetHost, 'TARGET');
+  const host = targetAddress(p, useKerberosTarget);
 
   let target = '';
   const flags: string[] = [];
@@ -91,7 +110,8 @@ export function buildImpacketAuth(p: Profile, caps: ImpacketCaps = {}): string {
   }
 
   // -dc-ip: 指定域控 IP (域查询/Kerberos 场景常用)
-  if (dcIp && p.dcIP?.trim()) {
+  // 当 DC IP 与解析出的目标地址相同 (目标即 DC) 时省略，避免命令中同一 IP 出现两次
+  if (dcIp && p.dcIP?.trim() && p.dcIP.trim() !== host.trim()) {
     flags.push(`-dc-ip ${p.dcIP.trim()}`);
   }
 
@@ -196,7 +216,7 @@ export function buildBloodyADAuth(p: Profile): string {
  * nxc <protocol> <target> -u USER -d DOMAIN (-p PASS | -H HASH | -k)
  */
 export function buildNetExecAuth(p: Profile, protocol: string = 'smb'): string {
-  const target = v(p.targetIP || p.targetHost, 'TARGET');
+  const target = targetAddress(p, p.authMode === 'kerberos' || p.authMode === 'aeskey');
   const user = v(p.username, 'USER');
   const domain = v(p.domain, 'DOMAIN');
 
@@ -228,7 +248,7 @@ export function buildNetExecAuth(p: Profile, protocol: string = 'smb'): string {
  * evil-winrm -i HOST -u USER (-p PASS | -H HASH)
  */
 export function buildEvilWinRMAuth(p: Profile): string {
-  const host = v(p.targetIP || p.targetHost, 'TARGET');
+  const host = targetAddress(p, false);
   const user = v(p.username, 'USER');
 
   let authFlags = '';
@@ -286,4 +306,53 @@ export function buildCertipyAuth(p: Profile, command: string): string {
   }
 
   return `certipy-ad ${command} -u ${user}@${domain} ${authFlags} -dc-ip ${dcIP}`.trim();
+}
+
+export interface LdapsearchOpts {
+  /** 使用 LDAPS (ldaps://, 636)；默认 ldap:// 389 */
+  ldaps?: boolean;
+  /** StartTLS (-ZZ 强制成功)，与 ldaps 互斥 */
+  starttls?: boolean;
+  /** 匿名绑定 (不携带任何凭据) */
+  anonymous?: boolean;
+}
+
+/**
+ * Build ldapsearch auth prefix
+ * 参数定义来源: 本机 OpenLDAP 2.6.10 man ldapsearch
+ * 简单绑定:  ldapsearch -x -H ldap://DC -D 'USER@DOMAIN' -w 'PASS' -b 'BASE_DN'
+ * Kerberos:  KRB5CCNAME=<ccache> ldapsearch -Y GSSAPI -N -H ldap://DC_FQDN -b 'BASE_DN'
+ * 注意: OpenLDAP ldapsearch 不支持 NTLM 哈希传递，hash 模式回退为明文密码占位符；
+ *       aeskey 模式需先用 getTGT 换取 ccache 票据再走 GSSAPI。
+ */
+export function buildLdapsearchAuth(p: Profile, opts: LdapsearchOpts = {}): string {
+  const scheme = opts.ldaps ? 'ldaps' : 'ldap';
+  const useKerberos =
+    !opts.anonymous && (p.authMode === 'kerberos' || p.authMode === 'aeskey');
+  // GSSAPI 按 SPN 匹配，必须用 DC 主机名；简单绑定 IP 即可
+  const host = useKerberos
+    ? v(p.dcFQDN || p.dcIP, 'DC_HOST')
+    : v(p.dcIP || p.dcFQDN, 'DC_HOST');
+  const uri = `${scheme}://${host}`;
+  const base = q(v(domainDN(p), 'BASE_DN'));
+  const tlsFlag = opts.starttls ? '-ZZ ' : '';
+
+  if (opts.anonymous) {
+    return `ldapsearch -x ${tlsFlag}-H ${uri} -b ${base}`;
+  }
+
+  switch (p.authMode) {
+    case 'kerberos':
+    case 'aeskey': {
+      const ccache = v(p.ccachePath, '/tmp/krb5cc_0');
+      return `KRB5CCNAME=${ccache} ldapsearch -Y GSSAPI -N ${tlsFlag}-H ${uri} -b ${base}`;
+    }
+    default: {
+      // password 与 hash (ldapsearch 无法 PtH，统一用密码占位符)
+      const user = v(p.username, 'USER');
+      const domain = v(p.domain, 'DOMAIN');
+      const pass = q(v(p.password, 'PASSWORD'));
+      return `ldapsearch -x ${tlsFlag}-H ${uri} -D ${q(`${user}@${domain}`)} -w ${pass} -b ${base}`;
+    }
+  }
 }

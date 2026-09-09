@@ -18,6 +18,8 @@ export interface Profile {
   targetIP: string;
   targetHost: string;
   targetPort: string;
+  /** 目标 AD 对象: 用户/组/计算机/DN，用于 bloodyAD / dacledit / PowerShell 等以"对象"为目标的工具 */
+  targetObject: string;
 
   // Domain Controller
   dcIP: string;

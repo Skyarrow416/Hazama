@@ -17,9 +17,10 @@ export const fieldDefinitions: FieldDefinition[] = [
   { key: 'ccachePath', label: 'Ccache Path', placeholder: '/tmp/krb5cc_1000', group: 'credentials' },
 
   // Target group
-  { key: 'targetIP', label: '目标 IP', placeholder: '192.168.1.100', group: 'target' },
+  { key: 'targetIP', label: '目标 IP (留空回退 DC IP)', placeholder: '192.168.1.100', group: 'target' },
   { key: 'targetHost', label: '目标主机名', placeholder: 'DC01.corp.local', group: 'target' },
   { key: 'targetPort', label: '目标端口', placeholder: '445', group: 'target' },
+  { key: 'targetObject', label: '目标对象 (用户/组/DN)', placeholder: 'Administrator 或 CN=...,DC=corp,DC=local', group: 'target' },
 
   // DC group
   { key: 'dcIP', label: 'DC IP', placeholder: '192.168.1.10', group: 'dc' },

@@ -4,6 +4,8 @@ import { bloodyadTools } from './bloodyad';
 import { certipyTools } from './certipy';
 import { netexecTools } from './netexec';
 import { kerberosTools } from './kerberos';
+import { ldapsearchTools } from './ldapsearch';
+import { powershellTools } from './powershell';
 import { filetransferTools } from './filetransfer';
 
 export const categories: Category[] = [
@@ -16,6 +18,16 @@ export const categories: Category[] = [
     id: 'bloodyad',
     name: 'bloodyAD (ACL/AD 操作)',
     tools: bloodyadTools,
+  },
+  {
+    id: 'ldapsearch',
+    name: 'ldapsearch (LDAP 查询)',
+    tools: ldapsearchTools,
+  },
+  {
+    id: 'powershell',
+    name: 'PowerShell (AD 模块)',
+    tools: powershellTools,
   },
   {
     id: 'certipy',

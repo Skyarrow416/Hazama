@@ -24,7 +24,7 @@ function App() {
           </span>
         </div>
         <p className="text-xs text-gray-400 truncate">
-          内网渗透命令生成器 - Impacket / bloodyAD / Certipy / NetExec / Kerberos / BloodHound
+          内网渗透命令生成器 - Impacket / bloodyAD / ldapsearch / PowerShell / Certipy / NetExec / Kerberos
         </p>
         <p className="text-xs text-gray-600 ml-auto shrink-0 hidden lg:block">
           ⚠️ 仅用于授权渗透测试与安全教学
@@ -72,7 +72,7 @@ function App() {
       {/* Footer */}
       <footer className="bg-gray-950 border-t border-gray-800 py-1 px-6 text-center text-xs text-gray-700">
         <p>
-          Hazama v0.2.0-beta | Vite + React + TypeScript + Tailwind |
+          Hazama v0.4.0-beta | Vite + React + TypeScript + Tailwind |
           <a href="https://github.com/Skyarrow416/Hazama" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-400 ml-1">GitHub</a>
         </p>
       </footer>

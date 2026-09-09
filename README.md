@@ -1,12 +1,12 @@
 # Hazama
 
-[![Version](https://img.shields.io/badge/version-0.2.0--beta-blue.svg)](https://github.com/Skyarrow416/Hazama)
+[![Version](https://img.shields.io/badge/version-0.4.0--beta-blue.svg)](https://github.com/Skyarrow416/Hazama)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Deploy](https://img.shields.io/badge/deploy-GitHub%20Pages-brightgreen.svg)](https://Skyarrow416.github.io/Hazama/)
 
 **Hazama - Internal Network Penetration Command Generator**
 
-一个**纯前端**的内网渗透命令生成器，支持 **Impacket (全 60 个命令)**、**bloodyAD**、**Certipy**、**NetExec**、**Evil-WinRM**、**Kerberos** 和 **BloodHound** 等常见内网渗透工具的命令自动生成。
+一个**纯前端**的内网渗透命令生成器，支持 **Impacket (全 60 个命令)**、**bloodyAD**、**ldapsearch**、**PowerShell AD 模块**、**Certipy**、**NetExec**、**Evil-WinRM**、**Kerberos** 和 **BloodHound** 等常见内网渗透工具的命令自动生成。
 
 用户只需填写一份共享的凭据配置（域名、用户名、密码/哈希/Kerberos票据等），所有命令将**实时生成**，支持一键复制。
 
@@ -37,13 +37,17 @@
 
 ---
 
-## 🎯 当前版本: v0.2.0-beta
+## 🎯 当前版本: v0.4.0-beta
 
 ### 已实现功能
-- ✅ 6 大工具分类（Impacket, bloodyAD, Certipy, NetExec, Kerberos/BloodHound, 文件传输）
-- ✅ 105+ 工具/子命令，290+ 条预定义命令
+- ✅ 8 大工具分类（Impacket, bloodyAD, ldapsearch, PowerShell AD 模块, Certipy, NetExec/Evil-WinRM, Kerberos/BloodHound, 文件传输）
+- ✅ 130+ 工具/子命令，350+ 条预定义命令
 - ✅ Impacket 覆盖 Kali `impacket-scripts` 全部 60 个命令，参数与本机 v0.14.0.dev0 argparse 定义逐一核对
 - ✅ bloodyAD v2.5.4 全类别（add/get/set/remove/msldap）命令生成器，内置 ACL 攻击面简介
+- ✅ ldapsearch 完整模块（本机 OpenLDAP 2.6.10 man page 核对）：简单绑定/Kerberos GSSAPI/匿名/LDAPS/StartTLS、属性名与属性值查询、AD 常用枚举过滤器、已删除对象（墓碑）查询
+- ✅ PowerShell AD 模块（Microsoft Learn 官方文档核对）：对象属性查看、AD 回收站已删除对象恢复（Restore-ADObject）、免 RSAT 的 ADSI/DirectorySearcher 查询
+- ✅ 新增「目标对象」字段：bloodyAD/dacledit/Certipy/PowerShell 等以用户/组/DN 为目标的命令统一引用
+- ✅ 目标地址智能回退：目标即域控时只需填 DC IP（Target IP 留空自动回退），-dc-ip 自动去重
 - ✅ 每条命令附「用法详解/生成器指南」与真实样例（可折叠）
 - ✅ 文件传输模块：HTTP/SMB/FTP/BITS/certutil/PowerShell 六类通道，CMD 与 PowerShell 双格式
 - ✅ 4 种认证方式自动切换
@@ -79,7 +83,17 @@
 - **remove** - `genericAll` / `dcsync` / `rbcd` / `shadowCredentials` / `groupMember` / `object` / `uac` / `dnsRecord`
 - **msldap** - 28 个精选子命令（`whoami` / `query` / `dump` / `getsd` / `setsd` / `laps` / `gmsa` / `shadowcred` / `changeuserpw` 等）
 
-### 3. **Certipy (ADCS)** (11 个工具, 43 条命令, v5.0.4 / `certipy-ad`)
+### 3. **ldapsearch (LDAP 查询)** (3 个工具组, 25 条命令 —— 本机 OpenLDAP 2.6.10 man page 核对)
+- **全局参数与认证** - 简单绑定 / Kerberos GSSAPI (KRB5CCNAME) / 匿名 / LDAPS / StartTLS / 分页 (突破 1000 条上限) / LDIF 导出
+- **对象属性查询** - 全部属性 (`*` `+`) / 只看属性名 (`-A`) / 指定属性 / 只列 DN (`1.1`) / nTSecurityDescriptor / rootDSE / Schema 属性定义
+- **AD 常用枚举** - 用户/计算机/组(含嵌套 IN_CHAIN)/Kerberoastable/AS-REP/三种委派/LAPS/gMSA/adminCount/已删除对象 (Show Deleted 控制)/域信任/属性残留密码
+
+### 4. **PowerShell (AD 模块)** (3 个工具组, 19 条命令 —— Microsoft Learn 官方文档核对)
+- **查看对象属性** - `Get-ADObject` / `Get-ADUser` / `Get-ADComputer` / `Get-ADGroupMember -Recursive`，`-Properties *` 全属性 / 攻击面属性速查 / `-Credential` 换身份 / 导出 CSV
+- **恢复已删除对象** - 回收站状态检查 (`Get-ADOptionalFeature`) / 枚举墓碑 (`-IncludeDeletedObjects`) / `msDS-LastKnownRDN` 定位 / `Restore-ADObject` 单恢复与管道批量恢复 / 恢复后启用账户重置密码
+- **免 RSAT 查询** - `[ADSI]` 绑定读属性 / `[adsisearcher]` LDAP 过滤器查询 / 显式凭据 DirectoryEntry (非域机器) / 当前域林信息
+
+### 5. **Certipy (ADCS)** (11 个工具, 43 条命令, v5.0.4 / `certipy-ad`)
 - `find` - 枚举 ADCS,识别 ESC1-ESC16 漏洞模板与错误配置
 - `req` - 申请证书（ESC1/ESC9 利用、Web Enrollment、续期/归档）
 - `auth` - PFX 换 TGT/NTLM 哈希、LDAPS shell、导出 kirbi
@@ -92,21 +106,20 @@
 - `cert` - PFX/PEM 格式互转
 - `parse` - 离线解析注册表/BOF 数据评估模板漏洞
 
-### 4. **NetExec / Evil-WinRM** (6 个工具, 31 条命令)
+### 6. **NetExec / Evil-WinRM** (6 个工具, 31 条命令)
 - `nxc smb` - SMB 枚举、共享、用户、组、密码策略、SAM/LSA/NTDS 导出
 - `nxc winrm` / `nxc ldap` / `nxc mssql` - WinRM/LDAP/MSSQL 协议利用
 - `nxc ldap --bloodhound` - BloodHound 数据采集
 - `evil-winrm` - WinRM 交互式 Shell
 - `smbclient` - SMB 客户端
 
-### 5. **Kerberos / BloodHound** (5 个工具, 21 条命令)
+### 7. **Kerberos / BloodHound** (5 个工具, 21 条命令)
 - `bloodhound-python` / `SharpHound` - AD 图谱采集
 - `kinit` / `klist` / `kdestroy` - Kerberos 票据管理
-- `ldapsearch` - LDAP 查询（用户、组、SPN）
 - `Rubeus` - Kerberoasting、AS-REP Roasting、Pass-the-Ticket
 - **完整攻击流程** - Kerberoasting / AS-REP Roasting / Pass-the-Ticket 全流程命令串联
 
-### 6. **文件传输 File Transfer** (6 个工具, 20+ 条命令)
+### 8. **文件传输 File Transfer** (6 个工具, 20+ 条命令)
 - **攻击机托管** - `python3 -m http.server` / `impacket-smbserver` / `uploadserver`
 - **HTTP (PowerShell)** - WebClient / Invoke-WebRequest 下载、无落地 IEX 执行、HTTP 上传
 - **HTTP (CMD)** - `certutil -urlcache` / `bitsadmin` / `Start-BitsTransfer` / certutil Base64 编码

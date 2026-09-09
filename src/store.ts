@@ -19,6 +19,7 @@ const defaultProfile: Profile = {
   targetIP: '',
   targetHost: '',
   targetPort: '',
+  targetObject: '',
   dcIP: '',
   dcFQDN: '',
   localIP: '',

