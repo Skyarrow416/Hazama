@@ -29,6 +29,8 @@ export const fieldDefinitions: FieldDefinition[] = [
   // Local group
   { key: 'localIP', label: '本地 IP', placeholder: '192.168.1.50', group: 'local' },
   { key: 'localPort', label: '本地端口', placeholder: '4444', group: 'local' },
+  { key: 'localUser', label: '本地服务账号 (SMB 共享)', placeholder: 'kaada', group: 'local' },
+  { key: 'localPass', label: '本地服务口令 (SMB/PFX)', placeholder: 'kaada', group: 'local', type: 'password' },
 
   // Advanced group
   { key: 'spn', label: 'SPN', placeholder: 'HTTP/web.corp.local', group: 'advanced' },

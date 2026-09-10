@@ -512,8 +512,8 @@ auth 换 TGT 即可 DCSync。`,
       {
         id: 'certipy-cert-password',
         title: '重打包并设置密码',
-        description: '读取 PFX 后用 -export-password 重新加密导出,兼容只认加密 PFX 的工具',
-        build: (p) => `certipy-ad cert -pfx ${v(p.fileName, 'USER.pfx')} -export -out ${v('', 'protected.pfx')} -export-password ${q(v(p.password, 'PASSWORD'))}`,
+        description: '读取 PFX 后用 -export-password 重新加密导出 (口令为自设，取"本地服务口令"字段)，兼容只认加密 PFX 的工具',
+        build: (p) => `certipy-ad cert -pfx ${v(p.fileName, 'USER.pfx')} -export -out ${v('', 'protected.pfx')} -export-password ${q(v(p.localPass, 'EXPORT_PASS'))}`,
         usage: `输入参数:
   -pfx FILE           读取 PFX/P12 文件
   -password P         输入 PFX 的密码
