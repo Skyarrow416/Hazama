@@ -24,6 +24,8 @@ const defaultProfile: Profile = {
   dcFQDN: '',
   localIP: '',
   localPort: '',
+  localUser: '',
+  localPass: '',
   spn: '',
   certTemplate: '',
   caName: '',
@@ -46,6 +48,11 @@ export const useProfileStore = create<ProfileState>()(
     }),
     {
       name: 'pentest-profile-storage',
+      // 老版本 localStorage 里缺少后加字段时，用默认值补齐，避免 undefined 输入框
+      merge: (persisted, current) => {
+        const p = (persisted as Partial<ProfileState> | undefined)?.profile;
+        return { ...current, profile: { ...defaultProfile, ...p } };
+      },
     }
   )
 );

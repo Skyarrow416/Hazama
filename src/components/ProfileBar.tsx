@@ -343,6 +343,26 @@ export default function ProfileBar({ onSelectTool }: ProfileBarProps) {
                   className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
                 />
               </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">本地服务账号 (SMB 共享)</label>
+                <input
+                  type="text"
+                  placeholder="kaada"
+                  value={profile.localUser}
+                  onChange={(e) => updateProfile({ localUser: e.target.value })}
+                  className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">本地服务口令 (SMB/PFX)</label>
+                <input
+                  type="text"
+                  placeholder="kaada"
+                  value={profile.localPass}
+                  onChange={(e) => updateProfile({ localPass: e.target.value })}
+                  className="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                />
+              </div>
             </div>
           </div>
         )}

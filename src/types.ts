@@ -28,6 +28,10 @@ export interface Profile {
   // Local attacker info
   localIP: string;
   localPort: string;
+  /** 攻击机本地服务账号 (如 impacket-smbserver 自建认证)，与目标凭证无关 */
+  localUser: string;
+  /** 攻击机本地服务口令 / 自设口令 (如 smbserver 认证、PFX 导出密码) */
+  localPass: string;
 
   // Tool-specific
   spn: string;

