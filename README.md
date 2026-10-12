@@ -1,6 +1,6 @@
 # Hazama
 
-[![Version](https://img.shields.io/badge/version-0.4.0--beta-blue.svg)](https://github.com/Skyarrow416/Hazama)
+[![Version](https://img.shields.io/badge/version-0.5.0--beta-blue.svg)](https://github.com/Skyarrow416/Hazama)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Deploy](https://img.shields.io/badge/deploy-GitHub%20Pages-brightgreen.svg)](https://Skyarrow416.github.io/Hazama/)
 
@@ -28,7 +28,7 @@
 - ✅ **纯前端** - Vite + React + TypeScript + Tailwind CSS，零后端依赖
 - ✅ **多认证方式** - 支持密码 / NTLM Hash (Pass-the-Hash) / Kerberos / AES Key，一键切换
 - ✅ **实时生成** - 修改凭据后所有命令自动更新
-- ✅ **290+ 条命令** - 涵盖 100+ 常用内网渗透工具/子命令
+- ✅ **300+ 条命令** - 涵盖 100+ 常用内网渗透工具/子命令
 - ✅ **用法详解** - 每条命令附带严格对照官方 argparse 定义的参数说明与填好值的真实样例
 - ✅ **占位符高亮** - 未填字段以黄色高亮显示，快速定位缺失参数
 - ✅ **一键复制** - 每条命令支持 Clipboard API 一键复制
@@ -37,16 +37,20 @@
 
 ---
 
-## 🎯 当前版本: v0.4.0-beta
+## 🎯 当前版本: v0.5.0-beta
 
 ### 已实现功能
 - ✅ 8 大工具分类（Impacket, bloodyAD, ldapsearch, PowerShell AD 模块, Certipy, NetExec/Evil-WinRM, Kerberos/BloodHound, 文件传输）
-- ✅ 130+ 工具/子命令，350+ 条预定义命令
+- ✅ 130+ 工具/子命令，370+ 条预定义命令
 - ✅ Impacket 覆盖 Kali `impacket-scripts` 全部 60 个命令，参数与本机 v0.14.0.dev0 argparse 定义逐一核对
 - ✅ bloodyAD v2.5.4 全类别（add/get/set/remove/msldap）命令生成器，内置 ACL 攻击面简介
 - ✅ ldapsearch 完整模块（本机 OpenLDAP 2.6.10 man page 核对）：简单绑定/Kerberos GSSAPI/匿名/LDAPS/StartTLS、属性名与属性值查询、AD 常用枚举过滤器、已删除对象（墓碑）查询
 - ✅ PowerShell AD 模块（Microsoft Learn 官方文档核对）：对象属性查看、AD 回收站已删除对象恢复（Restore-ADObject）、免 RSAT 的 ADSI/DirectorySearcher 查询
 - ✅ 新增「目标对象」字段：bloodyAD/dacledit/Certipy/PowerShell 等以用户/组/DN 为目标的命令统一引用
+- ✅ GetUserSPNs `-no-preauth` 无凭据 Kerberoasting：利用 AS-REP-roastable 账户 + usersfile 批量 roast（impacket 源码核对）
+- ✅ RustHound 信息收集模块：全量/--dc-only/--adcs 三种采集，密码与 Kerberos ccache 认证（本机 rusthound 帮助核对）
+- ✅ /etc/krb5.conf 生成器：一键生成/追加 realm 配置 + /etc/hosts 解析，解决 -k 认证的 KDC 定位问题
+- ✅ NetExec 高频模块：gMSA 完整三件套（--gmsa / convert-id / decrypt-lsa）、lsassy/nanodump lsass 转储、coerce_plus 强制认证、GPP 密码、LAPS、MAQ
 - ✅ 目标地址智能回退：目标即域控时只需填 DC IP（Target IP 留空自动回退），-dc-ip 自动去重
 - ✅ 每条命令附「用法详解/生成器指南」与真实样例（可折叠）
 - ✅ 文件传输模块：HTTP/SMB/FTP/BITS/certutil/PowerShell 六类通道，CMD 与 PowerShell 双格式

