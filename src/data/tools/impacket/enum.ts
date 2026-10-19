@@ -3,7 +3,7 @@ import { buildImpacketAuth, buildImpacketDomainAuth, q, v } from '../../../lib/a
 
 /**
  * impacket 枚举/信息收集类工具
- * 参数定义来源为本机 impacket v0.14.0.dev0 --help 与官方 examples。
+ * 参数定义来源为本机 impacket v0.13.1 --help 与官方 examples。
  * (https://github.com/fortra/impacket/tree/master/examples)
  *
  * caps 与 --help 逐项核对结果:
@@ -445,6 +445,58 @@ SMB (445) 被过滤时可尝试 RPC 通道获取同样的 NTLM 信息`,
 -aesKey: 使用 AES 密钥 (128/256 位) 做 Kerberos 认证
 可快速确认拿到的主机是否为域控`,
         example: 'impacket-machine_role corp.local/svc-reader:Passw0rd@10.10.10.10',
+      },
+    ],
+  },
+  {
+    id: 'CheckLDAPStatus',
+    name: 'impacket-CheckLDAPStatus',
+    category: 'impacket',
+    homepage: 'https://github.com/fortra/impacket/blob/master/examples/CheckLDAPStatus.py',
+    description: '无需凭据，枚举域控 LDAP 签名与通道绑定 (Channel Binding) 强制状态，评估 NTLM 中继到 LDAP 的可行性',
+    commands: [
+      {
+        id: 'checkldapstatus-scan',
+        title: '探测 DC LDAP 签名/通道绑定',
+        description: '通过 DNS 定位域全部 DC 并逐个探测 LDAP 签名要求与 LDAPS 通道绑定策略',
+        build: (p) => `impacket-CheckLDAPStatus -dc-ip ${v(p.dcIP, 'DC_IP')} -domain ${v(p.domain, 'DOMAIN')}`,
+        usage: `关键参数 (均为必填):
+  -dc-ip IP     域控 IP，或该域可用的 DNS 解析服务器 IP
+  -domain DOMAIN  域名 (用于 DNS SRV 查询定位全部 DC)
+可选参数:
+  -timeout SEC  DNS 查询超时秒数
+说明:
+  该工具无任何认证参数，先经 DNS 枚举域内 DC，再分别探测:
+  - LDAP 签名要求 (None / Negotiated / Required)
+  - LDAPS 通道绑定 (Disabled / WhenSupported / Always)
+ 签名未强制时 NTLM 可中继到 LDAP (配合 ntlmrelayx --delegate-access 等)；
+ 通道绑定未强制时 HTTPS/LDAPS 端点可被中继 (ESC8 等场景)`,
+        example: `impacket-CheckLDAPStatus -dc-ip 10.0.0.10 -domain corp.local`,
+      },
+    ],
+  },
+  {
+    id: 'checkMSSQLStatus',
+    name: 'impacket-checkMSSQLStatus',
+    category: 'impacket',
+    homepage: 'https://github.com/fortra/impacket/blob/master/examples/checkMSSQLStatus.py',
+    description: '通过 TDS 预登录握手检查目标 MSSQL 实例的加密强制状态 (评估 NTLM 中继到 MSSQL 的可行性)',
+    commands: [
+      {
+        id: 'checkmssqlstatus-scan',
+        title: '检查 MSSQL 加密状态',
+        description: '发送 TDS prelogin 包，报告服务器是否强制加密 (ENCRYPTION 字段)',
+        build: (p) => `impacket-checkMSSQLStatus ${buildImpacketAuth(p, { targetIp: true })}`,
+        usage: `位置参数:
+  target   [[domain/]username[:password]@]<targetName or address>
+关键参数:
+  -port PORT  MSSQL 端口 (默认 1433)
+认证参数: -hashes LMHASH:NTHASH / -k -no-pass / -aesKey <hex> -k
+连接参数: -dc-ip 域控 IP；-target-ip 目标主机名无法解析时指定目标 IP
+说明: 服务器未强制加密 (ENCRYPTION=ENCRYPT_NOT_SUP/OFF) 时，
+NTLM 认证可被中继到该 MSSQL 实例 (ntlmrelayx -t mssql://...)，
+是打点 MSSQL 前的快速侦察步骤`,
+        example: `impacket-checkMSSQLStatus corp.local/jdoe:Passw0rd@192.168.1.20`,
       },
     ],
   },

@@ -1,12 +1,12 @@
 # Hazama
 
-[![Version](https://img.shields.io/badge/version-0.5.0--beta-blue.svg)](https://github.com/Skyarrow416/Hazama)
+[![Version](https://img.shields.io/badge/version-0.6.0--beta-blue.svg)](https://github.com/Skyarrow416/Hazama)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Deploy](https://img.shields.io/badge/deploy-GitHub%20Pages-brightgreen.svg)](https://Skyarrow416.github.io/Hazama/)
 
 **Hazama - Internal Network Penetration Command Generator**
 
-一个**纯前端**的内网渗透命令生成器，支持 **Impacket (全 60 个命令)**、**bloodyAD**、**ldapsearch**、**PowerShell AD 模块**、**Certipy**、**NetExec**、**Evil-WinRM**、**Kerberos** 和 **BloodHound** 等常见内网渗透工具的命令自动生成。
+一个**纯前端**的内网渗透命令生成器，支持 **Impacket (全 70 个命令)**、**bloodyAD**、**ldapsearch**、**PowerShell AD 模块**、**Certipy**、**NetExec**、**Evil-WinRM**、**Kerberos** 和 **BloodHound** 等常见内网渗透工具的命令自动生成。
 
 用户只需填写一份共享的凭据配置（域名、用户名、密码/哈希/Kerberos票据等），所有命令将**实时生成**，支持一键复制。
 
@@ -37,12 +37,12 @@
 
 ---
 
-## 🎯 当前版本: v0.5.0-beta
+## 🎯 当前版本: v0.6.0-beta
 
 ### 已实现功能
 - ✅ 8 大工具分类（Impacket, bloodyAD, ldapsearch, PowerShell AD 模块, Certipy, NetExec/Evil-WinRM, Kerberos/BloodHound, 文件传输）
-- ✅ 130+ 工具/子命令，370+ 条预定义命令
-- ✅ Impacket 覆盖 Kali `impacket-scripts` 全部 60 个命令，参数与本机 v0.14.0.dev0 argparse 定义逐一核对
+- ✅ 140+ 工具/子命令，390+ 条预定义命令
+- ✅ Impacket 覆盖 Kali `impacket-scripts` 全部 70 个命令（含 v0.13 新增的 badsuccessor/dpapidump/regsecrets/samedit/filetime/attrib/CheckLDAPStatus/checkMSSQLStatus/kintercept），参数与本机 v0.13.1 argparse 定义逐一核对
 - ✅ bloodyAD v2.5.4 全类别（add/get/set/remove/msldap）命令生成器，内置 ACL 攻击面简介
 - ✅ ldapsearch 完整模块（本机 OpenLDAP 2.6.10 man page 核对）：简单绑定/Kerberos GSSAPI/匿名/LDAPS/StartTLS、属性名与属性值查询、AD 常用枚举过滤器、已删除对象（墓碑）查询
 - ✅ PowerShell AD 模块（Microsoft Learn 官方文档核对）：对象属性查看、AD 回收站已删除对象恢复（Restore-ADObject）、免 RSAT 的 ADSI/DirectorySearcher 查询
@@ -70,13 +70,13 @@
 
 ## 🛠️ 支持的工具 | Supported Tools
 
-### 1. **Impacket** (60 个工具, 166 条命令 —— Kali `impacket-scripts` 全覆盖)
+### 1. **Impacket** (70 个工具, 186 条命令 —— Kali `impacket-scripts` 全覆盖)
 - **远程执行** - `impacket-psexec` / `wmiexec` / `smbexec` / `atexec` / `dcomexec`
-- **凭据导出** - `impacket-secretsdump`(DCSync/VSS/离线解析) / `dpapi` / `mimikatz` / `GetLAPSPassword` / `Get-GPPPassword` / `changepasswd`
-- **Kerberos** - `GetUserSPNs`(Kerberoasting) / `GetNPUsers`(AS-REP) / `getTGT` / `getST`(S4U 委派) / `ticketer`(黄金/白银票据) / `ticketConverter` / `describeTicket` / `getPac` / `goldenPac` / `keylistattack`
-- **AD 权限攻击** - `dacledit` / `owneredit` / `rbcd` / `addcomputer` / `raiseChild`(子域到林根) / `ntlmrelayx`(NTLM 中继)
-- **枚举** - `lookupsid` / `samrdump` / `rpcdump` / `rpcmap` / `GetADUsers` / `GetADComputers` / `findDelegation` / `netview` / `net` / `DumpNTLMInfo` / `getArch` / `machine_role` / `mssqlinstance`
-- **SMB/文件/注册表** - `smbclient` / `smbserver` / `karmaSMB` / `services` / `reg` / `registry-read` / `ntfs-read` / `esentutl` / `split`
+- **凭据导出** - `impacket-secretsdump`(DCSync/VSS/离线解析) / `regsecrets`(纯注册表导出) / `dpapi` / `dpapidump`(SCCM+SYSTEM DPAPI) / `samedit`(离线 SAM 改密) / `mimikatz` / `GetLAPSPassword` / `Get-GPPPassword` / `changepasswd`
+- **Kerberos** - `GetUserSPNs`(Kerberoasting) / `GetNPUsers`(AS-REP) / `getTGT` / `getST`(S4U 委派) / `ticketer`(黄金/白银票据) / `ticketConverter` / `describeTicket` / `getPac` / `goldenPac` / `keylistattack` / `kintercept`(拦截代理)
+- **AD 权限攻击** - `dacledit` / `owneredit` / `rbcd` / `badsuccessor`(dMSA/BadSuccessor) / `addcomputer` / `raiseChild`(子域到林根) / `ntlmrelayx`(NTLM 中继)
+- **枚举** - `lookupsid` / `samrdump` / `rpcdump` / `rpcmap` / `GetADUsers` / `GetADComputers` / `findDelegation` / `netview` / `net` / `DumpNTLMInfo` / `getArch` / `machine_role` / `mssqlinstance` / `CheckLDAPStatus`(签名/通道绑定) / `checkMSSQLStatus`(加密状态)
+- **SMB/文件/注册表** - `smbclient` / `smbserver` / `karmaSMB` / `services` / `reg` / `registry-read` / `ntfs-read` / `esentutl` / `split` / `filetime`(timestomp) / `attrib`(隐藏属性)
 - **其他** - `mssqlclient` / `wmipersist` / `wmiquery` / `ping` / `ping6` / `rdp_check` / `mqtt_check` / `sniff` / `sniffer` / `sambaPipe` / `tstool` / `exchanger`
 
 ### 2. **bloodyAD (ACL/AD 操作)** (7 个工具组, 63 条命令, v2.5.4)
@@ -204,7 +204,7 @@ Hazama/
 │   ├── data/
 │   │   ├── fields.ts             # 表单字段定义
 │   │   └── tools/                # 6 个工具命令库
-│   │       ├── impacket/         # impacket 全 60 命令(按主题 7 个数据文件)
+│   │       ├── impacket/         # impacket 全 70 命令(按主题 7 个数据文件)
 │   │       ├── bloodyad.ts       # bloodyAD v2.5.4 (含 ACL 简介)
 │   ├── lib/
 │   │   ├── auth.ts               # 核心认证字符串构造

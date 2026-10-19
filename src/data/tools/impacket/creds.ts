@@ -1,9 +1,136 @@
-// 参数定义来源为本机 impacket v0.14.0.dev0 --help 与官方 examples。
-// 覆盖: secretsdump / dpapi / mimikatz / GetLAPSPassword / Get-GPPPassword / changepasswd
+// 参数定义来源为本机 impacket v0.13.1 --help 与官方 examples。
+// 覆盖: secretsdump / regsecrets / dpapi / dpapidump / samedit / mimikatz / GetLAPSPassword / Get-GPPPassword / changepasswd
 import type { Tool } from '../../../types';
 import { buildImpacketAuth, buildImpacketDomainAuth, v } from '../../../lib/auth';
 
 export const impacketCredsTools: Tool[] = [
+  {
+    id: 'impacket-regsecrets',
+    name: 'impacket-regsecrets',
+    category: 'impacket',
+    homepage: 'https://github.com/fortra/impacket/blob/master/examples/regsecrets.py',
+    description: '纯注册表远程秘密导出：不经 DRSUAPI/服务，直接远程读取 SAM/SECURITY hive 解出本地哈希、LSA secrets 与缓存凭据 (v0.13 新增)',
+    commands: [
+      {
+        id: 'regsecrets-dump',
+        title: '远程注册表秘密全量导出',
+        description: '默认同时导出 SAM 哈希、MSCache 缓存凭据与 LSA secrets，不在目标执行任何 agent',
+        build: (p) => `impacket-regsecrets ${buildImpacketAuth(p, { targetIp: true })}`,
+        usage: `位置参数:
+  target   [[domain/]username[:password]@]<targetName or address>，需目标本地管理员权限
+关键参数:
+  -nosam / -nocache / -nolsa  分别跳过 SAM / MSCache / LSA secrets 导出
+  -outputfile FILE  输出文件基名 (自动附加 .sam/.secrets/.cached 后缀)
+  -history          同时导出密码历史与 LSA secrets 旧值
+  -system SYSTEM / -bootkey BOOTKEY  提供本地 SYSTEM hive 或 bootkey 辅助解密
+  -throttle SEC     各操作之间的节流秒数 (降低对目标的压力)
+认证参数: -hashes LMHASH:NTHASH / -k -no-pass / -aesKey <hex> -k / -keytab <file>
+连接参数: -dc-ip 域控 IP；-target-ip 目标主机名无法解析时指定目标 IP
+说明: 与 secretsdump 的 SAM/LSA 部分类似，但完全通过远程注册表读取，
+不创建服务、不走 DRSUAPI，对非 DC 成员机更轻量`,
+        example: `impacket-regsecrets corp.local/administrator:Passw0rd@192.168.1.10 -outputfile regdump`,
+      },
+      {
+        id: 'regsecrets-sam-only',
+        title: '只导出 SAM 本地哈希',
+        description: '-nocache -nolsa 跳过缓存凭据与 LSA secrets，快速拿本地管理员哈希',
+        build: (p) => `impacket-regsecrets ${buildImpacketAuth(p, { targetIp: true })} -nocache -nolsa`,
+        usage: `位置参数:
+  target   [[domain/]username[:password]@]<targetName or address>
+关键参数:
+  -nocache  不导出 MSCache 缓存凭据
+  -nolsa    不导出 LSA secrets
+组合后只导出 SAM 本地账户哈希，速度最快、读取的注册表路径最少
+认证参数: -hashes / -k -no-pass / -aesKey -k / -keytab
+连接参数: -dc-ip / -target-ip`,
+        example: `impacket-regsecrets corp.local/administrator:Passw0rd@192.168.1.10 -nocache -nolsa`,
+      },
+    ],
+  },
+  {
+    id: 'impacket-dpapidump',
+    name: 'impacket-dpapidump',
+    category: 'impacket',
+    homepage: 'https://github.com/fortra/impacket/blob/master/examples/dpapidump.py',
+    description: '远程提取 SYSTEM 上下文的 DPAPI 凭据与 SCCM 客户端秘密 (自动完成 LSA secrets 读取与解密) (v0.13 新增)',
+    commands: [
+      {
+        id: 'dpapidump-all',
+        title: '提取 SYSTEM DPAPI 凭据 + SCCM 秘密',
+        description: '默认同时提取 SYSTEM 用户 DPAPI 凭据与 SCCM 客户端凭据 (SCCM 环境常直接拿到域账户)',
+        build: (p) => `impacket-dpapidump ${buildImpacketAuth(p, { targetIp: true })}`,
+        usage: `位置参数:
+  target   [[domain/]username[:password]@]<targetName or address>，需目标本地管理员权限
+关键参数:
+  -creds     只提取 SYSTEM 用户的 DPAPI 凭据
+  -sccm      只提取 SCCM 客户端凭据 (默认不指定时两者都提取)
+  -userkey KEY  直接提供 SYSTEM 的 dpapi_userkey (如之前 secretsdump 导出过)，
+                省略时工具会先执行一次 LSA secrets dump 自动获取
+  -bootkey BOOTKEY  SYSTEM hive 的 bootkey
+  -throttle SEC   各操作之间的节流秒数
+认证参数: -hashes LMHASH:NTHASH / -k -no-pass / -aesKey <hex> -k / -keytab <file>
+连接参数: -dc-ip 域控 IP；-target-ip 目标主机名无法解析时指定目标 IP
+说明: SCCM 客户端常缓存高权限账户凭据 (NAA 账户/任务序列凭据)，
+该工具一条命令完成提取+解密，省去手动跑 secretsdump + dpapi 多步操作`,
+        example: `impacket-dpapidump corp.local/administrator:Passw0rd@192.168.1.20`,
+      },
+      {
+        id: 'dpapidump-userkey',
+        title: '复用已导出的 dpapi_userkey',
+        description: '-userkey 直接提供 SYSTEM dpapi_userkey，跳过 LSA secrets dump，更快更安静',
+        build: (p) => `impacket-dpapidump ${buildImpacketAuth(p, { targetIp: true })} -userkey ${v('', 'DPAPI_USERKEY')}`,
+        usage: `位置参数:
+  target   [[domain/]username[:password]@]<targetName or address>
+关键参数:
+  -userkey KEY  SYSTEM 的 dpapi_userkey (0x... 十六进制)，
+                通常来自之前 secretsdump/regsecrets 导出的 LSA secrets ($MACHINE.ACC / DPAPI_SYSTEM)
+  -creds / -sccm  限定提取范围
+说明: 已拿到 userkey 后重复打点同网段机器时，省去每次都 dump LSA 的步骤
+认证参数: -hashes / -k -no-pass / -aesKey -k / -keytab
+连接参数: -dc-ip / -target-ip`,
+        example: `impacket-dpapidump corp.local/administrator:Passw0rd@192.168.1.20 -userkey 0x0123456789abcdef...`,
+      },
+    ],
+  },
+  {
+    id: 'impacket-samedit',
+    name: 'impacket-samedit',
+    category: 'impacket',
+    homepage: 'https://github.com/fortra/impacket/blob/master/examples/samedit.py',
+    description: '离线就地修改 SAM hive 中本地用户的密码/哈希 (配合 ntdsutil/reg save 导出的 hive 使用) (v0.13 新增)',
+    commands: [
+      {
+        id: 'samedit-password',
+        title: '离线重置 SAM 中用户密码',
+        description: '-password 设置新密码，-system 提供对应 SYSTEM hive 计算 bootkey 完成加密',
+        build: (p) => `impacket-samedit -password ${v('', 'NEWPASSWORD')} -system ${v(p.fileName, 'SYSTEM')} ${v(p.username, 'USER')} ${v(p.remotePath, 'SAM')}`,
+        usage: `位置参数:
+  user     要替换密码的本地用户名
+  sam      要编辑的 SAM hive 文件 (就地修改，建议先备份)
+关键参数:
+  -password PASS  要设置的新密码 (与 -hashes 二选一)
+  -system SYSTEM  包含 bootkey 的 SYSTEM hive (密码加密必需；与 -bootkey 二选一)
+  -bootkey BOOTKEY  直接提供 bootkey (十六进制)
+说明: 纯离线工具。拿到主机的 SAM+SYSTEM hive (如 VSS/磁盘镜像) 后改写管理员密码，
+再把 hive 写回或用于还原场景；修改是就地的，原始密码不可逆恢复`,
+        example: `impacket-samedit -password 'N3wP@ss!' -system SYSTEM Administrator SAM`,
+      },
+      {
+        id: 'samedit-hashes',
+        title: '离线直接写入 NTLM 哈希',
+        description: '-hashes 直接替换 NTLM 哈希 (LM 部分可选)，-bootkey 直接给 bootkey',
+        build: (p) => `impacket-samedit -hashes :${v(p.ntHash, 'NTHASH')} -bootkey ${v('', 'BOOTKEY')} ${v(p.username, 'USER')} ${v(p.remotePath, 'SAM')}`,
+        usage: `位置参数:
+  user     要替换哈希的本地用户名
+  sam      要编辑的 SAM hive 文件
+关键参数:
+  -hashes HASHES  直接替换 NTLM 哈希，格式 LMHASH:NTHASH (LM 可省略写 :NTHASH)
+  -bootkey BOOTKEY  bootkey 十六进制 (可用 secretsdump 从 SYSTEM hive 解出)
+说明: 写入已知哈希后可直接 Pass-the-Hash 登录，常用于篡改磁盘镜像/备份中的凭据`,
+        example: `impacket-samedit -hashes :31d6cfe0d16ae931b73c59d7e0c089c0 -bootkey 0123456789abcdef... Administrator SAM`,
+      },
+    ],
+  },
   {
     id: 'impacket-secretsdump',
     name: 'impacket-secretsdump',

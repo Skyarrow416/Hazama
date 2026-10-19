@@ -1,9 +1,98 @@
-// 参数定义来源为本机 impacket v0.14.0.dev0 --help 与官方 examples。
-// 覆盖: smbclient / smbserver / karmaSMB / services / reg / registry-read / ntfs-read / esentutl / split
+// 参数定义来源为本机 impacket v0.13.1 --help 与官方 examples。
+// 覆盖: smbclient / smbserver / karmaSMB / services / reg / registry-read / ntfs-read / esentutl / split / filetime / attrib
 import type { Tool } from '../../../types';
 import { buildImpacketAuth, q, v } from '../../../lib/auth';
 
 export const impacketSmbTools: Tool[] = [
+  {
+    id: 'impacket-filetime',
+    name: 'impacket-filetime',
+    category: 'impacket',
+    homepage: 'https://github.com/fortra/impacket/blob/master/examples/filetime.py',
+    description: '经 SMB 查询/修改远程文件与目录的时间戳 (timestomp 反取证) (v0.13 新增)',
+    commands: [
+      {
+        id: 'filetime-stat',
+        title: '查询远程文件时间戳',
+        description: 'stat 子命令读取目标文件/目录的创建/访问/写入/变更四项时间戳',
+        build: (p) => `impacket-filetime ${buildImpacketAuth(p, { targetIp: true })} ${v(p.fileName, 'SHARE')} ${v(p.remotePath, 'PATH')} stat`,
+        usage: `位置参数:
+  target   [[domain/]username[:password]@]<targetName or address>
+  share    文件所在共享名 (如 C$)
+  path     共享内的文件/目录路径 (如 Windows\\\\Temp\\\\payload.exe)
+  {stat,touch}  子命令: stat 查询 / touch 修改
+认证参数: -hashes LMHASH:NTHASH / -k -no-pass / -aesKey <hex> -k
+连接参数: -p 目标 SMB 端口；-dc-ip 域控 IP；-target-ip 目标 IP；-t 连接超时
+说明: 修改时间戳前先用 stat 记录原始值，便于事后恢复`,
+        example: `impacket-filetime corp.local/administrator:Passw0rd@192.168.1.10 C$ Windows/Temp/payload.exe stat`,
+      },
+      {
+        id: 'filetime-touch-reference',
+        title: '克隆其他文件的时间戳 (timestomp)',
+        description: 'touch -r 复制参照文件的时间戳到目标文件，使落地文件时间特征与系统文件一致',
+        build: (p) => `impacket-filetime ${buildImpacketAuth(p, { targetIp: true })} ${v(p.fileName, 'SHARE')} ${v(p.remotePath, 'PATH')} touch -r ${v(p.fileName, 'SHARE')} ${v('', 'REF_PATH')} -v`,
+        usage: `touch 子命令参数:
+  -c / -a / -w / -m   分别修改 CreationTime / LastAccessTime / LastWriteTime / ChangeTime
+                      (不指定时四项全部修改)
+  -r <share> <path>   参照文件: 把该文件的时间戳复制到目标 (如 C$ Windows\\\\System32\\\\kernel32.dll)
+  -t STAMP            直接指定时间戳，格式 YYYY-MM-DD_HH:MM:SS.mmmmmm
+  -v                  修改后重新查询验证
+说明: 落地 payload 后用系统文件时间戳克隆，可绕过按时间排序的排查 (timestomp)`,
+        example: `impacket-filetime corp.local/administrator:Passw0rd@192.168.1.10 C$ Windows/Temp/payload.exe touch -r C$ Windows/System32/kernel32.dll -v`,
+      },
+      {
+        id: 'filetime-touch-stamp',
+        title: '指定时间戳修改',
+        description: 'touch -t 直接设定时间戳，-c/-a/-w/-m 可只改部分字段',
+        build: (p) => `impacket-filetime ${buildImpacketAuth(p, { targetIp: true })} ${v(p.fileName, 'SHARE')} ${v(p.remotePath, 'PATH')} touch -t ${v('', 'YYYY-MM-DD_HH:MM:SS.mmmmmm')} -v`,
+        usage: `touch 子命令参数:
+  -t STAMP   时间戳格式 YYYY-MM-DD_HH:MM:SS.mmmmmm (如 2023-01-01_09:00:00.000000)
+  -c/-a/-w/-m  只修改指定字段 (不指定时四项全改)
+  -v         修改后验证
+说明: 把文件时间改到攻击窗口之外，干扰时间线取证分析`,
+        example: `impacket-filetime corp.local/administrator:Passw0rd@192.168.1.10 C$ Windows/Temp/payload.exe touch -t 2023-06-15_10:30:00.000000 -v`,
+      },
+    ],
+  },
+  {
+    id: 'impacket-attrib',
+    name: 'impacket-attrib',
+    category: 'impacket',
+    homepage: 'https://github.com/fortra/impacket/blob/master/examples/attrib.py',
+    description: '经 SMB 查询/修改远程文件属性 (隐藏/系统/只读等，用于隐藏落地文件) (v0.13 新增)',
+    commands: [
+      {
+        id: 'attrib-query',
+        title: '查询远程文件属性',
+        description: 'query 子命令读取目标文件/目录的当前 NTFS 属性',
+        build: (p) => `impacket-attrib ${buildImpacketAuth(p, { targetIp: true })} ${v(p.fileName, 'SHARE')} ${v(p.remotePath, 'PATH')} query`,
+        usage: `位置参数:
+  target   [[domain/]username[:password]@]<targetName or address>
+  share    文件所在共享名 (如 C$)
+  path     共享内的文件路径
+  {query,set}  子命令: query 查询 / set 修改
+认证参数: -hashes LMHASH:NTHASH / -k -no-pass / -aesKey <hex> -k
+连接参数: -p 目标 SMB 端口；-dc-ip 域控 IP；-target-ip 目标 IP；-t 连接超时`,
+        example: `impacket-attrib corp.local/administrator:Passw0rd@192.168.1.10 C$ Windows/Temp/payload.exe query`,
+      },
+      {
+        id: 'attrib-set-hidden',
+        title: '设置隐藏+系统属性',
+        description: 'set -H -s 将落地文件标记为隐藏系统文件，普通目录列举不可见',
+        build: (p) => `impacket-attrib ${buildImpacketAuth(p, { targetIp: true })} ${v(p.fileName, 'SHARE')} ${v(p.remotePath, 'PATH')} set -H -s`,
+        usage: `set 子命令属性标志 (可组合):
+  -r, --readonly   只读
+  -H, --hidden     隐藏 (普通目录列举不显示)
+  -s, --system     系统文件 (配合隐藏后资源管理器默认不可见)
+  -a, --archive    存档
+  -n, --normal     清除所有其他属性 (单独使用时)
+  -t, --temporary / -c, --compressed / -o, --offline / -e, --encrypted / -p, --sparse / -u, --not-indexed
+说明: 设置 hidden+system 后 dir 与资源管理器默认均不显示该文件，
+配合 filetime 修改时间戳可进一步隐藏落地痕迹`,
+        example: `impacket-attrib corp.local/administrator:Passw0rd@192.168.1.10 C$ Windows/Temp/payload.exe set -H -s`,
+      },
+    ],
+  },
   {
     id: 'impacket-smbclient',
     name: 'impacket-smbclient',

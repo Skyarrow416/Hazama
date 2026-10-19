@@ -3,7 +3,7 @@ import { buildImpacketAuth, v } from '../../../lib/auth';
 
 /**
  * impacket 杂项类工具 (MSSQL/WMI/ping/sniff/RDP/MQTT/SambaPipe/tstool/exchanger)
- * 参数定义来源为本机 impacket v0.14.0.dev0 --help 与官方 examples。
+ * 参数定义来源为本机 impacket v0.13.1 --help 与官方 examples。
  * 参考: https://github.com/fortra/impacket/tree/master/examples
  *
  * caps 差异 (逐个核对 --help):

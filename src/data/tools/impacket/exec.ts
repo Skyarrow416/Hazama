@@ -3,7 +3,7 @@ import { buildImpacketAuth, v } from '../../../lib/auth';
 
 /**
  * 远程命令执行类 impacket 工具 (psexec/wmiexec/smbexec/atexec/dcomexec)
- * 参数定义来源为本机 impacket v0.14.0.dev0 --help 与官方 examples。
+ * 参数定义来源为本机 impacket v0.13.1 --help 与官方 examples。
  * 参考: https://github.com/fortra/impacket/tree/master/examples
  *
  * 通用 target 格式: [[domain/]username[:password]@]<targetName or address>

